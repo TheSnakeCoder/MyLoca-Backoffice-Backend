@@ -5,6 +5,8 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { ExternalApiModule } from './external-api/external-api.module';
+import { AdminOversightModule } from './admin-oversight/admin-oversight.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { AdminModule } from './admin/admin.module';
     PrismaModule,
     AuthModule,
     AdminModule,
+    ExternalApiModule,
+    AdminOversightModule,
   ],
   controllers: [AppController],
   providers: [AppService],

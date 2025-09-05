@@ -1,0 +1,1084 @@
+{
+    "apiDocumentation": {
+      "title": "MyLoc Backend API",
+      "description": "Location sharing and social networking application API",
+      "version": "1.0.0",
+      "baseUrl": "http://localhost:3000",
+      "authentication": "JWT Bearer Token",
+      "endpoints": {
+        "application": {
+          "prefix": "/",
+          "description": "Basic application endpoints for health checks",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/",
+              "summary": "Health check endpoint",
+              "description": "Returns a simple greeting message to confirm the API is running",
+              "authentication": "None",
+              "throttling": "None",
+              "request": {
+                "parameters": "None",
+                "body": "None"
+              },
+              "response": {
+                "type": "string",
+                "example": "Hello World!"
+              }
+            }
+          ]
+        },
+        "authentication": {
+          "prefix": "/auth",
+          "description": "User authentication and profile management",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/auth/signin",
+              "summary": "User authentication",
+              "description": "Authenticate user with email/username and password. Returns JWT tokens",
+              "authentication": "None (Public)",
+              "throttling": "5 requests per minute",
+              "request": {
+                "body": {
+                  "emailOrUsername": "string (required) - Email or username",
+                  "password": "string (required) - User password"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Sign in successful",
+                  "access_token": "jwt_access_token",
+                  "refresh_token": "jwt_refresh_token",
+                  "user": {
+                    "id": "user_id",
+                    "email": "user@example.com",
+                    "username": "username",
+                    "profilePicture": "url_or_null",
+                    "isActive": true
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/auth/signup",
+              "summary": "User registration",
+              "description": "Register a new user account with optional profile picture",
+              "authentication": "None (Public)",
+              "throttling": "3 requests per minute",
+              "request": {
+                "contentType": "multipart/form-data",
+                "body": {
+                  "email": "string (required) - User email",
+                  "username": "string (required) - Unique username",
+                  "password": "string (required) - User password",
+                  "profilePicture": "file (optional) - Profile picture upload"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Account created successfully",
+                  "access_token": "jwt_access_token",
+                  "refresh_token": "jwt_refresh_token",
+                  "user": "user_object"
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/auth/refresh",
+              "summary": "Refresh access token",
+              "description": "Get new access token using refresh token",
+              "authentication": "Refresh Token",
+              "throttling": "None",
+              "request": {
+                "headers": {
+                  "Authorization": "Bearer refresh_token"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Token refreshed successfully",
+                  "access_token": "new_access_token",
+                  "refresh_token": "new_refresh_token"
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/auth/logout",
+              "summary": "User logout",
+              "description": "Logout user and revoke all refresh tokens",
+              "authentication": "JWT Required",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "message": "Logout successful"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/auth/me",
+              "summary": "Get current user profile",
+              "description": "Returns detailed profile information for authenticated user",
+              "authentication": "JWT Required",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "id": "user_id",
+                  "email": "user@example.com",
+                  "username": "username",
+                  "profilePicture": "url_or_null",
+                  "isActive": true,
+                  "createdAt": "2024-01-01T00:00:00Z",
+                  "updatedAt": "2024-01-01T00:00:00Z"
+                }
+              }
+            },
+            {
+              "method": "PATCH",
+              "path": "/auth/me",
+              "summary": "Update current user profile",
+              "description": "Update authenticated user's profile information",
+              "authentication": "JWT Required",
+              "throttling": "None",
+              "request": {
+                "body": {
+                  "email": "string (optional) - New email",
+                  "username": "string (optional) - New username",
+                  "password": "string (optional) - New password"
+                }
+              },
+              "response": {
+                "example": "Updated user object"
+              }
+            }
+          ]
+        },
+        "users": {
+          "prefix": "/users",
+          "description": "User management and discovery",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/users",
+              "summary": "Create new user",
+              "description": "Create a new user account with optional profile picture (used by auth module)",
+              "authentication": "None (Public)",
+              "throttling": "None",
+              "request": {
+                "contentType": "multipart/form-data",
+                "body": {
+                  "email": "string (required)",
+                  "username": "string (required)",
+                  "password": "string (required)",
+                  "profilePicture": "file (optional)"
+                }
+              },
+              "response": {
+                "example": "Created user object"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/users",
+              "summary": "Get all users",
+              "description": "Returns a list of all users in the system",
+              "authentication": "None",
+              "throttling": "None",
+              "response": {
+                "example": "Array of user objects"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/users/search",
+              "summary": "Search users",
+              "description": "Search for users by username or email",
+              "authentication": "JWT Required",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "q": "string (required) - Search query",
+                  "page": "number (optional) - Page number (default: 1)",
+                  "limit": "number (optional) - Items per page (default: 10)"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of user objects",
+                  "pagination": {
+                    "total": 100,
+                    "page": 1,
+                    "limit": 10,
+                    "totalPages": 10
+                  }
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/users/:id",
+              "summary": "Get user by ID",
+              "description": "Returns detailed information about a specific user",
+              "authentication": "None",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "id": "string (required) - User ID"
+                }
+              },
+              "response": {
+                "example": "User object"
+              }
+            },
+            {
+              "method": "PATCH",
+              "path": "/users/:id",
+              "summary": "Update user profile",
+              "description": "Update user profile information",
+              "authentication": "None",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "id": "string (required) - User ID"
+                },
+                "body": {
+                  "email": "string (optional)",
+                  "username": "string (optional)",
+                  "password": "string (optional)"
+                }
+              },
+              "response": {
+                "example": "Updated user object"
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/users/:id",
+              "summary": "Delete user account",
+              "description": "Permanently remove a user account from the system",
+              "authentication": "None",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "id": "string (required) - User ID"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "User deleted successfully"
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/users/profile-picture",
+              "summary": "Upload profile picture",
+              "description": "Upload or update user profile picture",
+              "authentication": "JWT Required",
+              "throttling": "5 requests per minute",
+              "request": {
+                "contentType": "multipart/form-data",
+                "body": {
+                  "profilePicture": "file (required) - Image file"
+                }
+              },
+              "response": {
+                "example": "Updated user object with new profile picture URL"
+              }
+            }
+          ]
+        },
+        "friends": {
+          "prefix": "/friends",
+          "description": "Friend relationships and social features",
+          "authentication": "JWT Required (All endpoints)",
+          "endpoints": [
+            {
+              "method": "POST",
+              "path": "/friends/request",
+              "summary": "Send friend request",
+              "description": "Send a friend request to another user",
+              "throttling": "5 requests per minute",
+              "request": {
+                "body": {
+                  "requesteeId": "string (required) - ID of user to send request to"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Friend request sent successfully",
+                  "friendRequest": "friend_request_object"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/friends/request/:requesteeId",
+              "summary": "Cancel friend request",
+              "description": "Cancel a pending friend request",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "requesteeId": "string (required) - ID of user request was sent to"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Friend request cancelled successfully"
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/friends/request/:requesterId/respond",
+              "summary": "Respond to friend request",
+              "description": "Accept or reject a friend request",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "requesterId": "string (required) - ID of user who sent request"
+                },
+                "body": {
+                  "action": "string (required) - 'accept' or 'reject'"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Friend request accepted/rejected",
+                  "friendship": "friendship_object (if accepted)"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/friends/requests",
+              "summary": "Get friend requests",
+              "description": "Get pending friend requests received by current user",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "page": "number (optional) - Page number",
+                  "limit": "number (optional) - Items per page"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of friend request objects",
+                  "pagination": "pagination_object"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/friends",
+              "summary": "Get friends list",
+              "description": "Get paginated list of user's confirmed friends",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "page": "number (optional)",
+                  "limit": "number (optional)"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of friend objects",
+                  "pagination": "pagination_object"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/friends/search",
+              "summary": "Search friends",
+              "description": "Search within user's friends by name or username",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "q": "string (required) - Search query",
+                  "page": "number (optional)",
+                  "limit": "number (optional)"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of matching friend objects",
+                  "pagination": "pagination_object"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/friends/:friendId",
+              "summary": "Remove friend",
+              "description": "Remove a friend from friend list",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "friendId": "string (required) - ID of friend to remove"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Friend removed successfully"
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/friends/block/:userId",
+              "summary": "Block user",
+              "description": "Block a user and remove any existing friendship",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "userId": "string (required) - ID of user to block"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "User blocked successfully"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/friends/block/:userId",
+              "summary": "Unblock user",
+              "description": "Remove block on a previously blocked user",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "userId": "string (required) - ID of user to unblock"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "User unblocked successfully"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/friends/blocked",
+              "summary": "Get blocked users",
+              "description": "Get paginated list of blocked users",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "page": "number (optional)",
+                  "limit": "number (optional)"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of blocked user objects",
+                  "pagination": "pagination_object"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/friends/profile/:friendId",
+              "summary": "Get friend profile",
+              "description": "Get detailed profile information for a specific friend",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "friendId": "string (required) - ID of friend"
+                }
+              },
+              "response": {
+                "example": {
+                  "friend": "friend_profile_object",
+                  "friendship": "friendship_details_object"
+                }
+              }
+            }
+          ]
+        },
+        "location": {
+          "prefix": "/location",
+          "description": "Location sharing and privacy management",
+          "authentication": "JWT Required (All endpoints)",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/location/status",
+              "summary": "Get location status",
+              "description": "Get current user's location sharing status",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "isLiveLocationOn": true,
+                  "privacyLevel": "ALL_FRIENDS",
+                  "allowLocationHistory": true,
+                  "lastUpdated": "2024-01-01T00:00:00Z"
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/location/update",
+              "summary": "Update location",
+              "description": "Update user's current location coordinates",
+              "throttling": "3 requests per second",
+              "request": {
+                "body": {
+                  "latitude": "number (required) - Latitude coordinate",
+                  "longitude": "number (required) - Longitude coordinate",
+                  "accuracy": "number (optional) - GPS accuracy in meters"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Location updated successfully",
+                  "location": "location_object"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/friends",
+              "summary": "Get friends' locations",
+              "description": "Get current locations of all friends who are sharing location",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "data": "Array of friend location objects"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/user/:userId",
+              "summary": "Get specific user location",
+              "description": "Get location of a specific user (if they're sharing with you)",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "userId": "string (required) - User ID"
+                }
+              },
+              "response": {
+                "example": "User location object or access denied"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/privacy",
+              "summary": "Get location privacy settings",
+              "description": "Get current user's location privacy configuration",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "privacyLevel": "ALL_FRIENDS",
+                  "selectedFriendIds": [],
+                  "allowLocationHistory": true
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/location/privacy",
+              "summary": "Update location privacy",
+              "description": "Update location sharing privacy settings",
+              "throttling": "None",
+              "request": {
+                "body": {
+                  "privacyLevel": "string (required) - ALL_FRIENDS/SELECTED_FRIENDS/NOBODY",
+                  "selectedFriendIds": "array (optional) - Friend IDs for SELECTED_FRIENDS mode",
+                  "allowLocationHistory": "boolean (optional) - Enable/disable location history"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Privacy settings updated successfully",
+                  "privacySettings": "updated_privacy_object"
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/location/live-location/toggle",
+              "summary": "Toggle live location",
+              "description": "Enable or disable live location sharing",
+              "throttling": "10 requests per minute",
+              "request": {
+                "body": {
+                  "isLiveLocationOn": "boolean (required) - Enable/disable live location",
+                  "expiresAt": "string (optional) - ISO date for auto-disable"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Live location toggled successfully",
+                  "isLiveLocationOn": true,
+                  "expiresAt": "2024-01-01T00:00:00Z"
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/location/favorites",
+              "summary": "Create favorite location",
+              "description": "Save a location as favorite with custom name and settings",
+              "throttling": "None",
+              "request": {
+                "body": {
+                  "name": "string (required) - Custom name for location",
+                  "description": "string (optional) - Location description",
+                  "latitude": "number (required) - Latitude coordinate",
+                  "longitude": "number (required) - Longitude coordinate",
+                  "address": "string (optional) - Formatted address",
+                  "category": "string (optional) - Location category",
+                  "privacyLevel": "string (optional) - Privacy level for this favorite",
+                  "proximityDistance": "number (optional) - Distance for notifications (50-1000m)"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Favorite location created successfully",
+                  "favoriteLocation": "favorite_location_object"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/favorites",
+              "summary": "Get favorite locations",
+              "description": "Get all favorite locations for current user",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "data": "Array of favorite location objects"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/favorites/:favoriteLocationId",
+              "summary": "Get specific favorite location",
+              "description": "Get details of a specific favorite location",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "favoriteLocationId": "string (required) - Favorite location ID"
+                }
+              },
+              "response": {
+                "example": "Favorite location object"
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/location/favorites/:favoriteLocationId",
+              "summary": "Update favorite location",
+              "description": "Update details of a favorite location",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "favoriteLocationId": "string (required) - Favorite location ID"
+                },
+                "body": {
+                  "name": "string (optional) - Updated name",
+                  "description": "string (optional) - Updated description",
+                  "category": "string (optional) - Updated category",
+                  "proximityDistance": "number (optional) - Updated proximity distance"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Favorite location updated successfully",
+                  "favoriteLocation": "updated_favorite_location_object"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/location/favorites/:favoriteLocationId",
+              "summary": "Delete favorite location",
+              "description": "Remove a favorite location",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "favoriteLocationId": "string (required) - Favorite location ID"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Favorite location deleted successfully"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/favorites/:favoriteLocationId/privacy",
+              "summary": "Get favorite location privacy",
+              "description": "Get privacy settings for a specific favorite location",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "favoriteLocationId": "string (required) - Favorite location ID"
+                }
+              },
+              "response": {
+                "example": {
+                  "privacyLevel": "PRIVATE",
+                  "selectedFriendIds": []
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/location/favorites/:favoriteLocationId/privacy",
+              "summary": "Update favorite location privacy",
+              "description": "Update privacy settings for a specific favorite location",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "favoriteLocationId": "string (required) - Favorite location ID"
+                },
+                "body": {
+                  "privacyLevel": "string (required) - PRIVATE/ALL_FRIENDS/SELECTED_FRIENDS",
+                  "selectedFriendIds": "array (optional) - Friend IDs for SELECTED_FRIENDS mode"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Privacy settings updated successfully",
+                  "privacySettings": "updated_privacy_object"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/friends/favorites",
+              "summary": "Get friends' favorite locations",
+              "description": "Get favorite locations shared by friends",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "friendId": "string (optional) - Specific friend ID",
+                  "category": "string (optional) - Filter by category"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of friends' favorite location objects"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/history",
+              "summary": "Get location history",
+              "description": "Get paginated location history for current user",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "page": "number (optional) - Page number",
+                  "limit": "number (optional) - Items per page",
+                  "startDate": "string (optional) - Start date filter (ISO format)",
+                  "endDate": "string (optional) - End date filter (ISO format)"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of location history objects",
+                  "pagination": "pagination_object"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/location/history/:historyId",
+              "summary": "Delete location history record",
+              "description": "Delete a specific location history entry",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "historyId": "string (required) - History entry ID"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Location history entry deleted successfully"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/location/history",
+              "summary": "Delete all location history",
+              "description": "Delete all location history for current user",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "message": "All location history deleted successfully",
+                  "deletedCount": 150
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/location/history/toggle",
+              "summary": "Toggle location history",
+              "description": "Enable or disable location history tracking",
+              "throttling": "None",
+              "request": {
+                "body": {
+                  "enabled": "boolean (required) - Enable/disable location history"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Location history setting updated successfully",
+                  "allowLocationHistory": true
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/cache/status",
+              "summary": "Get cache status",
+              "description": "Get location cache system status and health",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "status": "healthy",
+                  "cacheSize": 1024,
+                  "hitRate": 0.85,
+                  "lastCleanup": "2024-01-01T00:00:00Z"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/location/cache/stats",
+              "summary": "Get cache statistics",
+              "description": "Get detailed location cache performance statistics",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "totalRequests": 10000,
+                  "cacheHits": 8500,
+                  "cacheMisses": 1500,
+                  "hitRate": 0.85,
+                  "avgResponseTime": 25.5
+                }
+              }
+            }
+          ]
+        },
+        "notifications": {
+          "prefix": "/notifications",
+          "description": "Notification management and settings",
+          "authentication": "JWT Required (All endpoints)",
+          "endpoints": [
+            {
+              "method": "GET",
+              "path": "/notifications",
+              "summary": "Get notifications",
+              "description": "Get paginated list of notifications for current user",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "page": "number (optional) - Page number",
+                  "limit": "number (optional) - Items per page",
+                  "type": "string (optional) - Filter by notification type",
+                  "isRead": "boolean (optional) - Filter by read status"
+                }
+              },
+              "response": {
+                "example": {
+                  "data": "Array of notification objects",
+                  "pagination": "pagination_object",
+                  "unreadCount": 5
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/notifications/:id/read",
+              "summary": "Mark notification as read",
+              "description": "Mark a specific notification as read",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "id": "string (required) - Notification ID"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Notification marked as read"
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/notifications/read-all",
+              "summary": "Mark all notifications as read",
+              "description": "Mark all notifications as read for current user",
+              "throttling": "10 requests per minute",
+              "response": {
+                "example": {
+                  "message": "All notifications marked as read"
+                }
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/notifications/:id",
+              "summary": "Delete notification",
+              "description": "Delete a specific notification",
+              "throttling": "None",
+              "request": {
+                "parameters": {
+                  "id": "string (required) - Notification ID"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Notification deleted successfully"
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/notifications/settings",
+              "summary": "Get notification settings",
+              "description": "Get current user's notification preferences",
+              "throttling": "None",
+              "response": {
+                "example": {
+                  "friendRequestNotifications": true,
+                  "locationNotifications": true,
+                  "proximityNotifications": true,
+                  "proximityDistance": 1000,
+                  "favoriteLocationNotifications": true
+                }
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/notifications/settings",
+              "summary": "Update notification settings",
+              "description": "Update notification preferences for current user",
+              "throttling": "None",
+              "request": {
+                "body": {
+                  "friendRequestNotifications": "boolean (optional) - Enable friend request notifications",
+                  "locationNotifications": "boolean (optional) - Enable location notifications",
+                  "proximityNotifications": "boolean (optional) - Enable proximity notifications",
+                  "proximityDistance": "number (optional) - Proximity distance in meters",
+                  "favoriteLocationNotifications": "boolean (optional) - Enable favorite location notifications"
+                }
+              },
+              "response": {
+                "example": {
+                  "message": "Notification settings updated successfully",
+                  "settings": "updated_settings_object"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dataTypes": {
+        "pagination_object": {
+          "total": "number - Total number of items",
+          "page": "number - Current page number",
+          "limit": "number - Items per page",
+          "totalPages": "number - Total number of pages",
+          "hasNext": "boolean - Whether there are more pages",
+          "hasPrev": "boolean - Whether there are previous pages"
+        },
+        "user_object": {
+          "id": "string - Unique user identifier",
+          "email": "string - User email address",
+          "username": "string - Unique username",
+          "profilePicture": "string|null - Profile picture URL",
+          "isActive": "boolean - Account active status",
+          "createdAt": "string - Account creation timestamp",
+          "updatedAt": "string - Last update timestamp"
+        },
+        "location_object": {
+          "latitude": "number - Latitude coordinate (encrypted in storage)",
+          "longitude": "number - Longitude coordinate (encrypted in storage)",
+          "accuracy": "number - GPS accuracy in meters",
+          "lastUpdated": "string - Last update timestamp",
+          "isLiveLocationOn": "boolean - Live location sharing status",
+          "privacyLevel": "string - Location privacy level"
+        },
+        "notification_types": [
+          "FRIEND_REQUEST_RECEIVED",
+          "FRIEND_REQUEST_ACCEPTED",
+          "FRIEND_ARRIVED_AT_FAVORITE",
+          "FRIENDS_NEAR_FAVORITE",
+          "FRIEND_NEARBY"
+        ],
+        "privacy_levels": {
+          "location": ["ALL_FRIENDS", "SELECTED_FRIENDS", "NOBODY"],
+          "favorite_location": ["PRIVATE", "ALL_FRIENDS", "SELECTED_FRIENDS"]
+        }
+      },
+      "security": {
+        "authentication": {
+          "type": "JWT Bearer Token",
+          "header": "Authorization: Bearer <token>",
+          "tokenExpiry": "Configurable (default: 15 minutes for access token)",
+          "refreshToken": "Used for getting new access tokens (7 days expiry)"
+        },
+        "rateLimiting": {
+          "short": "3 requests per second (for high-frequency operations)",
+          "medium": "20 requests per 10 seconds",
+          "long": "100 requests per minute",
+          "specificLimits": {
+            "signin": "5 requests per minute",
+            "signup": "3 requests per minute",
+            "friendRequest": "5 requests per minute",
+            "locationUpdate": "3 requests per second",
+            "profilePictureUpload": "5 requests per minute"
+          }
+        },
+        "dataEncryption": {
+          "coordinates": "All latitude/longitude data encrypted in database",
+          "personalInfo": "Favorite location names and descriptions encrypted",
+          "passwords": "Bcrypt hashed with 12 rounds"
+        }
+      },
+      "realtime": {
+        "websockets": {
+          "locationGateway": {
+            "namespace": "/location",
+            "events": {
+              "locationUpdate": "Real-time location updates",
+              "liveLocationToggle": "Live location status changes",
+              "friendLocationUpdate": "Friend location updates"
+            }
+          },
+          "notificationGateway": {
+            "namespace": "/notifications",
+            "events": {
+              "newNotification": "New notification received",
+              "notificationRead": "Notification marked as read"
+            }
+          }
+        }
+      },
+      "fileUpload": {
+        "profilePictures": {
+          "storage": "Google Cloud Storage",
+          "allowedTypes": ["image/jpeg", "image/png", "image/webp"],
+          "maxSize": "5MB",
+          "processing": "Automatic resizing and optimization"
+        }
+      }
+    }
+  }
+  
