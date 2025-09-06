@@ -5,8 +5,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { CurrentUser, CurrentUserType } from './decorators/current-user.decorator';
-import { GetCurrentUserId } from './decorators/get-current-user.decorator';
+import { CurrentUserType, GetCurrentUser, GetCurrentUserId } from './decorators/get-current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -31,7 +30,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@CurrentUser() user: CurrentUserType) {
+  async getProfile(@GetCurrentUser() user: CurrentUserType) {
     return user;
   }
 
