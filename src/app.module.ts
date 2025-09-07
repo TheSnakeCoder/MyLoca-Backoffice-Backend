@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
-import { ExternalApiModule } from './external-api/external-api.module';
+import { MylocaApiModule } from './myloca-api/myloca-api.module';
 import { AdminOversightModule } from './admin-oversight/admin-oversight.module';
 
 @Module({
@@ -17,7 +17,7 @@ import { AdminOversightModule } from './admin-oversight/admin-oversight.module';
     PrismaModule,
     AuthModule,
     AdminModule,
-    ExternalApiModule,
+    MylocaApiModule,
     AdminOversightModule,
   ],
   controllers: [AppController],

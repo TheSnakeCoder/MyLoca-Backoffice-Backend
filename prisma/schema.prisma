@@ -1,19 +1,43 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+/**
+ * Prisma Schema for Live Location Sharing Application
+ * 
+ * This schema defines the database structure for a comprehensive location sharing
+ * and social networking application with the following features:
+ * 
+ * Core Entities:
+ * - User: User accounts with authentication and profile management
+ * - UserLocation: Current and live location data with privacy controls
+ * - LocationHistory: Historical location tracking for users
+ * - FavoriteLocation: User-saved favorite places with privacy settings
+ * - Friendship: Social relationships and friend requests
+ * 
+ * Key Features:
+ * - Encrypted coordinate storage for privacy protection
+ * - Comprehensive privacy controls for location sharing
+ * - Social graph management with friend requests and blocking
+ * - Location history tracking with configurable retention
+ * - Real-time location sharing with live location status
+ * 
+ * Security Considerations:
+ * - Coordinates stored as encrypted strings
+ * - Granular privacy levels (PUBLIC, FRIENDS_ONLY, PRIVATE)
+ * - User blocking system for harassment prevention
+ * - Refresh token storage for secure session management
+ */
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// Generate Prisma client with custom output location
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
+// PostgreSQL database configuration
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-
+// Admin model for backoffice system
 model Admin {
   id        String   @id @default(cuid())
   username  String   @unique
@@ -28,4 +52,3 @@ model Admin {
   creator   Admin?   @relation("AdminCreator", fields: [addedBy], references: [id], onDelete: SetNull)
   createdAdmins Admin[] @relation("AdminCreator")
 }
-

@@ -1,0 +1,25 @@
+health check
+
+// friends 
+
+all friend requests
+all pending friend requests
+all user friends
+get user by username/id
+get blocked users 
+get all user profile
+
+// loaction
+
+get all location status
+get all users location 
+get a user location
+get all user location settings
+get all favorite location / user locationget all user location privacy settings / user 
+get all location history / user
+
+get cache status  location / stats
+
+// users
+get all users
+search by username / id

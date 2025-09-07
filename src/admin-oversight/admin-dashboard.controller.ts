@@ -1,62 +1,89 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ExternalApiService } from '../external-api/external-api.service';
+import { MylocaApiService } from '../myloca-api/myloca-api.service';
 import { GetCurrentUser } from '../auth/decorators/get-current-user.decorator';
+import { GetJwtToken } from '../auth/decorators/get-jwt-token.decorator';
+import {
+  ApiDashboardController,
+  ApiGetDashboardStats,
+  ApiGetDashboardActivity,
+  ApiGetUserAnalytics,
+  ApiGetLocationAnalytics,
+  ApiGetSystemHealth,
+} from './swagger/dashboard.swagger';
 
 @Controller('admin-oversight/dashboard')
 @UseGuards(JwtAuthGuard)
+@ApiDashboardController()
 export class AdminDashboardController {
-  constructor(private readonly externalApiService: ExternalApiService) {}
+  constructor(
+    private readonly externalApiService: MylocaApiService,
+  ) {}
 
   @Get('stats')
-  async getDashboardStats(@GetCurrentUser('username') adminUsername?: string) {
+  @ApiGetDashboardStats()
+  async getDashboardStats(
+    @GetCurrentUser('username') adminUsername?: string,
+    @GetJwtToken() jwtToken?: string,
+  ) {
     console.log(`Admin ${adminUsername} viewing dashboard statistics`);
     
-    try {
-      const [systemStats, userStats, locationStats] = await Promise.all([
-        this.externalApiService.getSystemStats(),
-        this.externalApiService.getUserStats(),
-        this.externalApiService.getLocationStats(),
-      ]);
-
-      return {
-        system: systemStats,
-        users: userStats,
-        locations: locationStats,
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      
-      // Return partial data if some services fail
-      const stats: any = {
-        timestamp: new Date().toISOString(),
-        errors: [],
-      };
-
-      try {
-        stats.system = await this.externalApiService.getSystemStats();
-      } catch (e) {
-        stats.errors.push('Failed to fetch system stats');
-      }
-
-      try {
-        stats.users = await this.externalApiService.getUserStats();
-      } catch (e) {
-        stats.errors.push('Failed to fetch user stats');
-      }
-
-      try {
-        stats.locations = await this.externalApiService.getLocationStats();
-      } catch (e) {
-        stats.errors.push('Failed to fetch location stats');
-      }
-
-      return stats;
+    if (!jwtToken) {
+      throw new Error('JWT token is required for admin operations');
     }
+    
+    return this.externalApiService.getDashboardStats(jwtToken);
+  }
+
+  @Get('activity')
+  @ApiGetDashboardActivity()
+  async getDashboardActivity(
+    @Query('limit') limit?: number,
+    @GetCurrentUser('username') adminUsername?: string,
+    @GetJwtToken() jwtToken?: string,
+  ) {
+    console.log(`Admin ${adminUsername} viewing recent activity`);
+    
+    if (!jwtToken) {
+      throw new Error('JWT token is required for admin operations');
+    }
+    
+    return this.externalApiService.getDashboardActivity(jwtToken, limit);
+  }
+
+  @Get('analytics/users')
+  @ApiGetUserAnalytics()
+  async getUserAnalytics(
+    @Query('days') days?: number,
+    @GetCurrentUser('username') adminUsername?: string,
+    @GetJwtToken() jwtToken?: string,
+  ) {
+    console.log(`Admin ${adminUsername} viewing user analytics`);
+    
+    if (!jwtToken) {
+      throw new Error('JWT token is required for admin operations');
+    }
+    
+    return this.externalApiService.getDashboardUserAnalytics(jwtToken, days);
+  }
+
+  @Get('analytics/locations')
+  @ApiGetLocationAnalytics()
+  async getLocationAnalytics(
+    @GetCurrentUser('username') adminUsername?: string,
+    @GetJwtToken() jwtToken?: string,
+  ) {
+    console.log(`Admin ${adminUsername} viewing location analytics`);
+    
+    if (!jwtToken) {
+      throw new Error('JWT token is required for admin operations');
+    }
+    
+    return this.externalApiService.getDashboardLocationAnalytics(jwtToken);
   }
 
   @Get('health')
+  @ApiGetSystemHealth()
   async getSystemHealth(@GetCurrentUser('username') adminUsername?: string) {
     console.log(`Admin ${adminUsername} checking system health`);
     
@@ -71,8 +98,9 @@ export class AdminDashboardController {
     };
 
     try {
-      // Test connection to external API
-      await this.externalApiService.getSystemStats();
+      // Test connection to external API with health check endpoint
+      const jwtToken = 'admin-health-check-token'; // This would need proper admin token
+      await this.externalApiService.getHealthCheck(jwtToken);
       healthCheck.services.externalApi = true;
     } catch (error) {
       console.error('External API health check failed:', error.message);

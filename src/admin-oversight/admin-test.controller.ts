@@ -1,12 +1,12 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ExternalApiService } from '../external-api/external-api.service';
+import { MylocaApiService } from '../myloca-api/myloca-api.service';
 import { GetCurrentUser } from '../auth/decorators/get-current-user.decorator';
 
 @Controller('admin-oversight/test')
 @UseGuards(JwtAuthGuard)
 export class AdminTestController {
-  constructor(private readonly externalApiService: ExternalApiService) {}
+  constructor(private readonly externalApiService: MylocaApiService) {}
 
   @Get('connection')
   async testConnection(@GetCurrentUser('username') adminUsername?: string) {

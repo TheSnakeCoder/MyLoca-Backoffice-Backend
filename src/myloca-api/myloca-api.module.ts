@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
-import { ExternalApiService } from './external-api.service';
+import { MylocaApiService } from './myloca-api.service';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { ExternalApiService } from './external-api.service';
     }),
     ConfigModule,
   ],
-  providers: [ExternalApiService],
-  exports: [ExternalApiService],
+  providers: [MylocaApiService],
+  exports: [MylocaApiService],
 })
-export class ExternalApiModule {}
+export class MylocaApiModule {}

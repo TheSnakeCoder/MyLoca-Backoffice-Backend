@@ -1,1084 +1,1743 @@
 {
-    "apiDocumentation": {
-      "title": "MyLoc Backend API",
-      "description": "Location sharing and social networking application API",
-      "version": "1.0.0",
-      "baseUrl": "http://localhost:3000",
-      "authentication": "JWT Bearer Token",
-      "endpoints": {
-        "application": {
-          "prefix": "/",
-          "description": "Basic application endpoints for health checks",
-          "endpoints": [
-            {
-              "method": "GET",
-              "path": "/",
-              "summary": "Health check endpoint",
-              "description": "Returns a simple greeting message to confirm the API is running",
-              "authentication": "None",
-              "throttling": "None",
-              "request": {
-                "parameters": "None",
-                "body": "None"
-              },
-              "response": {
-                "type": "string",
-                "example": "Hello World!"
-              }
+  "apiInfo": {
+    "name": "MyLoc Live Location Sharing API",
+    "version": "1.0.0",
+    "description": "Comprehensive location sharing and social networking API with admin monitoring capabilities",
+    "baseUrl": "http://51.75.119.35:3003",
+    "documentation": "Swagger UI available at /api-docs",
+    "totalEndpoints": "89+ endpoints including 20 admin-specific endpoints",
+    "adminFeatures": {
+      "enabled": true,
+      "description": "Admin endpoints for monitoring and managing the platform",
+      "endpoints": 20,
+      "features": [
+        "Health monitoring",
+        "User management", 
+        "Friendship monitoring",
+        "Location tracking oversight",
+        "System analytics",
+        "Real-time dashboard",
+        "Platform analytics",
+        "Activity monitoring"
+      ]
+    }
+  },
+  "globalConfiguration": {
+    "cors": {
+      "enabled": true,
+      "credentials": true
+    },
+    "validation": {
+      "globalValidationPipe": true,
+      "whitelist": true,
+      "forbidNonWhitelisted": true,
+      "transform": true
+    },
+    "fileUpload": {
+      "maxFileSize": "5MB",
+      "supportedFormats": ["jpg", "jpeg", "png", "gif", "webp"],
+      "storage": "Google Cloud Storage"
+    },
+    "rateLimit": {
+      "enabled": true,
+      "configurations": {
+        "short": "3 requests per 1 second",
+        "medium": "5-20 requests per minute",
+        "long": "3-5 requests per minute"
+      }
+    },
+    "authentication": {
+      "type": "JWT",
+      "refreshTokens": true,
+      "guards": ["JwtAuthGuard", "LocalAuthGuard", "JwtRefreshAuthGuard"]
+    }
+  },
+  "endpoints": {
+    "app": {
+      "prefix": "/",
+      "description": "Root application endpoints",
+      "authentication": false,
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/",
+          "summary": "Application health check",
+          "description": "Returns welcome message to confirm API is running",
+          "authentication": false,
+          "rateLimit": null,
+          "requestBody": null,
+          "responses": {
+            "200": {
+              "description": "Welcome message",
+              "type": "string"
             }
-          ]
-        },
-        "authentication": {
-          "prefix": "/auth",
-          "description": "User authentication and profile management",
-          "endpoints": [
-            {
-              "method": "POST",
-              "path": "/auth/signin",
-              "summary": "User authentication",
-              "description": "Authenticate user with email/username and password. Returns JWT tokens",
-              "authentication": "None (Public)",
-              "throttling": "5 requests per minute",
-              "request": {
-                "body": {
-                  "emailOrUsername": "string (required) - Email or username",
-                  "password": "string (required) - User password"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Sign in successful",
-                  "access_token": "jwt_access_token",
-                  "refresh_token": "jwt_refresh_token",
-                  "user": {
-                    "id": "user_id",
-                    "email": "user@example.com",
-                    "username": "username",
-                    "profilePicture": "url_or_null",
-                    "isActive": true
-                  }
-                }
-              }
-            },
-            {
-              "method": "POST",
-              "path": "/auth/signup",
-              "summary": "User registration",
-              "description": "Register a new user account with optional profile picture",
-              "authentication": "None (Public)",
-              "throttling": "3 requests per minute",
-              "request": {
-                "contentType": "multipart/form-data",
-                "body": {
-                  "email": "string (required) - User email",
-                  "username": "string (required) - Unique username",
-                  "password": "string (required) - User password",
-                  "profilePicture": "file (optional) - Profile picture upload"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Account created successfully",
-                  "access_token": "jwt_access_token",
-                  "refresh_token": "jwt_refresh_token",
-                  "user": "user_object"
-                }
-              }
-            },
-            {
-              "method": "POST",
-              "path": "/auth/refresh",
-              "summary": "Refresh access token",
-              "description": "Get new access token using refresh token",
-              "authentication": "Refresh Token",
-              "throttling": "None",
-              "request": {
-                "headers": {
-                  "Authorization": "Bearer refresh_token"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Token refreshed successfully",
-                  "access_token": "new_access_token",
-                  "refresh_token": "new_refresh_token"
-                }
-              }
-            },
-            {
-              "method": "POST",
-              "path": "/auth/logout",
-              "summary": "User logout",
-              "description": "Logout user and revoke all refresh tokens",
-              "authentication": "JWT Required",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "message": "Logout successful"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/auth/me",
-              "summary": "Get current user profile",
-              "description": "Returns detailed profile information for authenticated user",
-              "authentication": "JWT Required",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "id": "user_id",
-                  "email": "user@example.com",
-                  "username": "username",
-                  "profilePicture": "url_or_null",
-                  "isActive": true,
-                  "createdAt": "2024-01-01T00:00:00Z",
-                  "updatedAt": "2024-01-01T00:00:00Z"
-                }
-              }
-            },
-            {
-              "method": "PATCH",
-              "path": "/auth/me",
-              "summary": "Update current user profile",
-              "description": "Update authenticated user's profile information",
-              "authentication": "JWT Required",
-              "throttling": "None",
-              "request": {
-                "body": {
-                  "email": "string (optional) - New email",
-                  "username": "string (optional) - New username",
-                  "password": "string (optional) - New password"
-                }
-              },
-              "response": {
-                "example": "Updated user object"
-              }
-            }
-          ]
-        },
-        "users": {
-          "prefix": "/users",
-          "description": "User management and discovery",
-          "endpoints": [
-            {
-              "method": "POST",
-              "path": "/users",
-              "summary": "Create new user",
-              "description": "Create a new user account with optional profile picture (used by auth module)",
-              "authentication": "None (Public)",
-              "throttling": "None",
-              "request": {
-                "contentType": "multipart/form-data",
-                "body": {
-                  "email": "string (required)",
-                  "username": "string (required)",
-                  "password": "string (required)",
-                  "profilePicture": "file (optional)"
-                }
-              },
-              "response": {
-                "example": "Created user object"
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/users",
-              "summary": "Get all users",
-              "description": "Returns a list of all users in the system",
-              "authentication": "None",
-              "throttling": "None",
-              "response": {
-                "example": "Array of user objects"
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/users/search",
-              "summary": "Search users",
-              "description": "Search for users by username or email",
-              "authentication": "JWT Required",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "q": "string (required) - Search query",
-                  "page": "number (optional) - Page number (default: 1)",
-                  "limit": "number (optional) - Items per page (default: 10)"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of user objects",
-                  "pagination": {
-                    "total": 100,
-                    "page": 1,
-                    "limit": 10,
-                    "totalPages": 10
-                  }
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/users/:id",
-              "summary": "Get user by ID",
-              "description": "Returns detailed information about a specific user",
-              "authentication": "None",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "id": "string (required) - User ID"
-                }
-              },
-              "response": {
-                "example": "User object"
-              }
-            },
-            {
-              "method": "PATCH",
-              "path": "/users/:id",
-              "summary": "Update user profile",
-              "description": "Update user profile information",
-              "authentication": "None",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "id": "string (required) - User ID"
-                },
-                "body": {
-                  "email": "string (optional)",
-                  "username": "string (optional)",
-                  "password": "string (optional)"
-                }
-              },
-              "response": {
-                "example": "Updated user object"
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/users/:id",
-              "summary": "Delete user account",
-              "description": "Permanently remove a user account from the system",
-              "authentication": "None",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "id": "string (required) - User ID"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "User deleted successfully"
-                }
-              }
-            },
-            {
-              "method": "POST",
-              "path": "/users/profile-picture",
-              "summary": "Upload profile picture",
-              "description": "Upload or update user profile picture",
-              "authentication": "JWT Required",
-              "throttling": "5 requests per minute",
-              "request": {
-                "contentType": "multipart/form-data",
-                "body": {
-                  "profilePicture": "file (required) - Image file"
-                }
-              },
-              "response": {
-                "example": "Updated user object with new profile picture URL"
-              }
-            }
-          ]
-        },
-        "friends": {
-          "prefix": "/friends",
-          "description": "Friend relationships and social features",
-          "authentication": "JWT Required (All endpoints)",
-          "endpoints": [
-            {
-              "method": "POST",
-              "path": "/friends/request",
-              "summary": "Send friend request",
-              "description": "Send a friend request to another user",
-              "throttling": "5 requests per minute",
-              "request": {
-                "body": {
-                  "requesteeId": "string (required) - ID of user to send request to"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Friend request sent successfully",
-                  "friendRequest": "friend_request_object"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/friends/request/:requesteeId",
-              "summary": "Cancel friend request",
-              "description": "Cancel a pending friend request",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "requesteeId": "string (required) - ID of user request was sent to"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Friend request cancelled successfully"
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/friends/request/:requesterId/respond",
-              "summary": "Respond to friend request",
-              "description": "Accept or reject a friend request",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "requesterId": "string (required) - ID of user who sent request"
-                },
-                "body": {
-                  "action": "string (required) - 'accept' or 'reject'"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Friend request accepted/rejected",
-                  "friendship": "friendship_object (if accepted)"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/friends/requests",
-              "summary": "Get friend requests",
-              "description": "Get pending friend requests received by current user",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "page": "number (optional) - Page number",
-                  "limit": "number (optional) - Items per page"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of friend request objects",
-                  "pagination": "pagination_object"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/friends",
-              "summary": "Get friends list",
-              "description": "Get paginated list of user's confirmed friends",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "page": "number (optional)",
-                  "limit": "number (optional)"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of friend objects",
-                  "pagination": "pagination_object"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/friends/search",
-              "summary": "Search friends",
-              "description": "Search within user's friends by name or username",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "q": "string (required) - Search query",
-                  "page": "number (optional)",
-                  "limit": "number (optional)"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of matching friend objects",
-                  "pagination": "pagination_object"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/friends/:friendId",
-              "summary": "Remove friend",
-              "description": "Remove a friend from friend list",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "friendId": "string (required) - ID of friend to remove"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Friend removed successfully"
-                }
-              }
-            },
-            {
-              "method": "POST",
-              "path": "/friends/block/:userId",
-              "summary": "Block user",
-              "description": "Block a user and remove any existing friendship",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "userId": "string (required) - ID of user to block"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "User blocked successfully"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/friends/block/:userId",
-              "summary": "Unblock user",
-              "description": "Remove block on a previously blocked user",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "userId": "string (required) - ID of user to unblock"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "User unblocked successfully"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/friends/blocked",
-              "summary": "Get blocked users",
-              "description": "Get paginated list of blocked users",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "page": "number (optional)",
-                  "limit": "number (optional)"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of blocked user objects",
-                  "pagination": "pagination_object"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/friends/profile/:friendId",
-              "summary": "Get friend profile",
-              "description": "Get detailed profile information for a specific friend",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "friendId": "string (required) - ID of friend"
-                }
-              },
-              "response": {
-                "example": {
-                  "friend": "friend_profile_object",
-                  "friendship": "friendship_details_object"
-                }
-              }
-            }
-          ]
-        },
-        "location": {
-          "prefix": "/location",
-          "description": "Location sharing and privacy management",
-          "authentication": "JWT Required (All endpoints)",
-          "endpoints": [
-            {
-              "method": "GET",
-              "path": "/location/status",
-              "summary": "Get location status",
-              "description": "Get current user's location sharing status",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "isLiveLocationOn": true,
-                  "privacyLevel": "ALL_FRIENDS",
-                  "allowLocationHistory": true,
-                  "lastUpdated": "2024-01-01T00:00:00Z"
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/location/update",
-              "summary": "Update location",
-              "description": "Update user's current location coordinates",
-              "throttling": "3 requests per second",
-              "request": {
-                "body": {
-                  "latitude": "number (required) - Latitude coordinate",
-                  "longitude": "number (required) - Longitude coordinate",
-                  "accuracy": "number (optional) - GPS accuracy in meters"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Location updated successfully",
-                  "location": "location_object"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/friends",
-              "summary": "Get friends' locations",
-              "description": "Get current locations of all friends who are sharing location",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "data": "Array of friend location objects"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/user/:userId",
-              "summary": "Get specific user location",
-              "description": "Get location of a specific user (if they're sharing with you)",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "userId": "string (required) - User ID"
-                }
-              },
-              "response": {
-                "example": "User location object or access denied"
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/privacy",
-              "summary": "Get location privacy settings",
-              "description": "Get current user's location privacy configuration",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "privacyLevel": "ALL_FRIENDS",
-                  "selectedFriendIds": [],
-                  "allowLocationHistory": true
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/location/privacy",
-              "summary": "Update location privacy",
-              "description": "Update location sharing privacy settings",
-              "throttling": "None",
-              "request": {
-                "body": {
-                  "privacyLevel": "string (required) - ALL_FRIENDS/SELECTED_FRIENDS/NOBODY",
-                  "selectedFriendIds": "array (optional) - Friend IDs for SELECTED_FRIENDS mode",
-                  "allowLocationHistory": "boolean (optional) - Enable/disable location history"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Privacy settings updated successfully",
-                  "privacySettings": "updated_privacy_object"
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/location/live-location/toggle",
-              "summary": "Toggle live location",
-              "description": "Enable or disable live location sharing",
-              "throttling": "10 requests per minute",
-              "request": {
-                "body": {
-                  "isLiveLocationOn": "boolean (required) - Enable/disable live location",
-                  "expiresAt": "string (optional) - ISO date for auto-disable"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Live location toggled successfully",
-                  "isLiveLocationOn": true,
-                  "expiresAt": "2024-01-01T00:00:00Z"
-                }
-              }
-            },
-            {
-              "method": "POST",
-              "path": "/location/favorites",
-              "summary": "Create favorite location",
-              "description": "Save a location as favorite with custom name and settings",
-              "throttling": "None",
-              "request": {
-                "body": {
-                  "name": "string (required) - Custom name for location",
-                  "description": "string (optional) - Location description",
-                  "latitude": "number (required) - Latitude coordinate",
-                  "longitude": "number (required) - Longitude coordinate",
-                  "address": "string (optional) - Formatted address",
-                  "category": "string (optional) - Location category",
-                  "privacyLevel": "string (optional) - Privacy level for this favorite",
-                  "proximityDistance": "number (optional) - Distance for notifications (50-1000m)"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Favorite location created successfully",
-                  "favoriteLocation": "favorite_location_object"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/favorites",
-              "summary": "Get favorite locations",
-              "description": "Get all favorite locations for current user",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "data": "Array of favorite location objects"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/favorites/:favoriteLocationId",
-              "summary": "Get specific favorite location",
-              "description": "Get details of a specific favorite location",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "favoriteLocationId": "string (required) - Favorite location ID"
-                }
-              },
-              "response": {
-                "example": "Favorite location object"
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/location/favorites/:favoriteLocationId",
-              "summary": "Update favorite location",
-              "description": "Update details of a favorite location",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "favoriteLocationId": "string (required) - Favorite location ID"
-                },
-                "body": {
-                  "name": "string (optional) - Updated name",
-                  "description": "string (optional) - Updated description",
-                  "category": "string (optional) - Updated category",
-                  "proximityDistance": "number (optional) - Updated proximity distance"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Favorite location updated successfully",
-                  "favoriteLocation": "updated_favorite_location_object"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/location/favorites/:favoriteLocationId",
-              "summary": "Delete favorite location",
-              "description": "Remove a favorite location",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "favoriteLocationId": "string (required) - Favorite location ID"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Favorite location deleted successfully"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/favorites/:favoriteLocationId/privacy",
-              "summary": "Get favorite location privacy",
-              "description": "Get privacy settings for a specific favorite location",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "favoriteLocationId": "string (required) - Favorite location ID"
-                }
-              },
-              "response": {
-                "example": {
-                  "privacyLevel": "PRIVATE",
-                  "selectedFriendIds": []
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/location/favorites/:favoriteLocationId/privacy",
-              "summary": "Update favorite location privacy",
-              "description": "Update privacy settings for a specific favorite location",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "favoriteLocationId": "string (required) - Favorite location ID"
-                },
-                "body": {
-                  "privacyLevel": "string (required) - PRIVATE/ALL_FRIENDS/SELECTED_FRIENDS",
-                  "selectedFriendIds": "array (optional) - Friend IDs for SELECTED_FRIENDS mode"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Privacy settings updated successfully",
-                  "privacySettings": "updated_privacy_object"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/friends/favorites",
-              "summary": "Get friends' favorite locations",
-              "description": "Get favorite locations shared by friends",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "friendId": "string (optional) - Specific friend ID",
-                  "category": "string (optional) - Filter by category"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of friends' favorite location objects"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/history",
-              "summary": "Get location history",
-              "description": "Get paginated location history for current user",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "page": "number (optional) - Page number",
-                  "limit": "number (optional) - Items per page",
-                  "startDate": "string (optional) - Start date filter (ISO format)",
-                  "endDate": "string (optional) - End date filter (ISO format)"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of location history objects",
-                  "pagination": "pagination_object"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/location/history/:historyId",
-              "summary": "Delete location history record",
-              "description": "Delete a specific location history entry",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "historyId": "string (required) - History entry ID"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Location history entry deleted successfully"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/location/history",
-              "summary": "Delete all location history",
-              "description": "Delete all location history for current user",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "message": "All location history deleted successfully",
-                  "deletedCount": 150
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/location/history/toggle",
-              "summary": "Toggle location history",
-              "description": "Enable or disable location history tracking",
-              "throttling": "None",
-              "request": {
-                "body": {
-                  "enabled": "boolean (required) - Enable/disable location history"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Location history setting updated successfully",
-                  "allowLocationHistory": true
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/cache/status",
-              "summary": "Get cache status",
-              "description": "Get location cache system status and health",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "status": "healthy",
-                  "cacheSize": 1024,
-                  "hitRate": 0.85,
-                  "lastCleanup": "2024-01-01T00:00:00Z"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/location/cache/stats",
-              "summary": "Get cache statistics",
-              "description": "Get detailed location cache performance statistics",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "totalRequests": 10000,
-                  "cacheHits": 8500,
-                  "cacheMisses": 1500,
-                  "hitRate": 0.85,
-                  "avgResponseTime": 25.5
-                }
-              }
-            }
-          ]
-        },
-        "notifications": {
-          "prefix": "/notifications",
-          "description": "Notification management and settings",
-          "authentication": "JWT Required (All endpoints)",
-          "endpoints": [
-            {
-              "method": "GET",
-              "path": "/notifications",
-              "summary": "Get notifications",
-              "description": "Get paginated list of notifications for current user",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "page": "number (optional) - Page number",
-                  "limit": "number (optional) - Items per page",
-                  "type": "string (optional) - Filter by notification type",
-                  "isRead": "boolean (optional) - Filter by read status"
-                }
-              },
-              "response": {
-                "example": {
-                  "data": "Array of notification objects",
-                  "pagination": "pagination_object",
-                  "unreadCount": 5
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/notifications/:id/read",
-              "summary": "Mark notification as read",
-              "description": "Mark a specific notification as read",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "id": "string (required) - Notification ID"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Notification marked as read"
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/notifications/read-all",
-              "summary": "Mark all notifications as read",
-              "description": "Mark all notifications as read for current user",
-              "throttling": "10 requests per minute",
-              "response": {
-                "example": {
-                  "message": "All notifications marked as read"
-                }
-              }
-            },
-            {
-              "method": "DELETE",
-              "path": "/notifications/:id",
-              "summary": "Delete notification",
-              "description": "Delete a specific notification",
-              "throttling": "None",
-              "request": {
-                "parameters": {
-                  "id": "string (required) - Notification ID"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Notification deleted successfully"
-                }
-              }
-            },
-            {
-              "method": "GET",
-              "path": "/notifications/settings",
-              "summary": "Get notification settings",
-              "description": "Get current user's notification preferences",
-              "throttling": "None",
-              "response": {
-                "example": {
-                  "friendRequestNotifications": true,
-                  "locationNotifications": true,
-                  "proximityNotifications": true,
-                  "proximityDistance": 1000,
-                  "favoriteLocationNotifications": true
-                }
-              }
-            },
-            {
-              "method": "PUT",
-              "path": "/notifications/settings",
-              "summary": "Update notification settings",
-              "description": "Update notification preferences for current user",
-              "throttling": "None",
-              "request": {
-                "body": {
-                  "friendRequestNotifications": "boolean (optional) - Enable friend request notifications",
-                  "locationNotifications": "boolean (optional) - Enable location notifications",
-                  "proximityNotifications": "boolean (optional) - Enable proximity notifications",
-                  "proximityDistance": "number (optional) - Proximity distance in meters",
-                  "favoriteLocationNotifications": "boolean (optional) - Enable favorite location notifications"
-                }
-              },
-              "response": {
-                "example": {
-                  "message": "Notification settings updated successfully",
-                  "settings": "updated_settings_object"
-                }
-              }
-            }
-          ]
-        }
-      },
-      "dataTypes": {
-        "pagination_object": {
-          "total": "number - Total number of items",
-          "page": "number - Current page number",
-          "limit": "number - Items per page",
-          "totalPages": "number - Total number of pages",
-          "hasNext": "boolean - Whether there are more pages",
-          "hasPrev": "boolean - Whether there are previous pages"
-        },
-        "user_object": {
-          "id": "string - Unique user identifier",
-          "email": "string - User email address",
-          "username": "string - Unique username",
-          "profilePicture": "string|null - Profile picture URL",
-          "isActive": "boolean - Account active status",
-          "createdAt": "string - Account creation timestamp",
-          "updatedAt": "string - Last update timestamp"
-        },
-        "location_object": {
-          "latitude": "number - Latitude coordinate (encrypted in storage)",
-          "longitude": "number - Longitude coordinate (encrypted in storage)",
-          "accuracy": "number - GPS accuracy in meters",
-          "lastUpdated": "string - Last update timestamp",
-          "isLiveLocationOn": "boolean - Live location sharing status",
-          "privacyLevel": "string - Location privacy level"
-        },
-        "notification_types": [
-          "FRIEND_REQUEST_RECEIVED",
-          "FRIEND_REQUEST_ACCEPTED",
-          "FRIEND_ARRIVED_AT_FAVORITE",
-          "FRIENDS_NEAR_FAVORITE",
-          "FRIEND_NEARBY"
-        ],
-        "privacy_levels": {
-          "location": ["ALL_FRIENDS", "SELECTED_FRIENDS", "NOBODY"],
-          "favorite_location": ["PRIVATE", "ALL_FRIENDS", "SELECTED_FRIENDS"]
-        }
-      },
-      "security": {
-        "authentication": {
-          "type": "JWT Bearer Token",
-          "header": "Authorization: Bearer <token>",
-          "tokenExpiry": "Configurable (default: 15 minutes for access token)",
-          "refreshToken": "Used for getting new access tokens (7 days expiry)"
-        },
-        "rateLimiting": {
-          "short": "3 requests per second (for high-frequency operations)",
-          "medium": "20 requests per 10 seconds",
-          "long": "100 requests per minute",
-          "specificLimits": {
-            "signin": "5 requests per minute",
-            "signup": "3 requests per minute",
-            "friendRequest": "5 requests per minute",
-            "locationUpdate": "3 requests per second",
-            "profilePictureUpload": "5 requests per minute"
           }
         },
-        "dataEncryption": {
-          "coordinates": "All latitude/longitude data encrypted in database",
-          "personalInfo": "Favorite location names and descriptions encrypted",
-          "passwords": "Bcrypt hashed with 12 rounds"
+        {
+          "method": "GET",
+          "path": "/health",
+          "summary": "Comprehensive health check (Admin Only)",
+          "description": "Returns detailed application health status including database connectivity. Requires admin authentication (users without email field).",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "rateLimit": null,
+          "requestBody": null,
+          "responses": {
+            "200": {
+              "description": "System health status",
+              "content": {
+                "status": "string (healthy/unhealthy)",
+                "timestamp": "string (ISO datetime)",
+                "uptime": "number (seconds)",
+                "database": {
+                  "status": "string (connected/disconnected)",
+                  "type": "string",
+                  "error": "string (optional)"
+                },
+                "environment": "string",
+                "version": "string"
+              }
+            },
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
         }
-      },
-      "realtime": {
-        "websockets": {
-          "locationGateway": {
-            "namespace": "/location",
-            "events": {
-              "locationUpdate": "Real-time location updates",
-              "liveLocationToggle": "Live location status changes",
-              "friendLocationUpdate": "Friend location updates"
+      ]
+    },
+    "auth": {
+      "prefix": "/auth",
+      "description": "Authentication and user session management",
+      "authentication": "mixed",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/auth/signin",
+          "summary": "User authentication",
+          "description": "Authenticate user with email/username and password",
+          "authentication": false,
+          "rateLimit": "5 attempts per minute",
+          "guards": ["LocalAuthGuard"],
+          "requestBody": {
+            "type": "SigninDto",
+            "required": true,
+            "fields": {
+              "emailOrUsername": "string",
+              "password": "string"
             }
           },
-          "notificationGateway": {
-            "namespace": "/notifications",
-            "events": {
-              "newNotification": "New notification received",
-              "notificationRead": "Notification marked as read"
+          "responses": {
+            "200": {
+              "description": "Authentication successful",
+              "content": {
+                "access_token": "string",
+                "refresh_token": "string",
+                "user": "User object without password"
+              }
+            },
+            "401": "Invalid credentials",
+            "400": "Invalid input data"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/auth/signup",
+          "summary": "User registration",
+          "description": "Register new user with optional profile picture",
+          "authentication": false,
+          "rateLimit": "3 attempts per minute",
+          "fileUpload": {
+            "enabled": true,
+            "fieldName": "profilePicture",
+            "optional": true
+          },
+          "requestBody": {
+            "type": "SignupDto",
+            "required": true,
+            "contentTypes": ["application/json", "multipart/form-data"],
+            "fields": {
+              "email": "string (email format)",
+              "username": "string (3-20 chars)",
+              "password": "string (min 6 chars)",
+              "profilePicture": "file (optional)"
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User created successfully",
+              "content": {
+                "message": "string",
+                "access_token": "string",
+                "refresh_token": "string",
+                "user": "User object"
+              }
+            },
+            "400": "Invalid input data or user exists"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/auth/refresh",
+          "summary": "Refresh access token",
+          "description": "Get new access token using refresh token",
+          "authentication": true,
+          "guards": ["JwtRefreshAuthGuard"],
+          "requestBody": {
+            "type": "RefreshTokenDto",
+            "required": true,
+            "fields": {
+              "refreshToken": "string"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "New tokens generated",
+              "content": {
+                "access_token": "string",
+                "refresh_token": "string"
+              }
+            },
+            "401": "Invalid or expired refresh token"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/auth/logout",
+          "summary": "User logout",
+          "description": "Logout user and revoke refresh tokens",
+          "authentication": true,
+          "guards": ["JwtAuthGuard"],
+          "responses": {
+            "200": {
+              "description": "Logout successful",
+              "content": {
+                "message": "string"
+              }
+            },
+            "401": "Invalid or expired token"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/auth/me",
+          "summary": "Get current user profile",
+          "description": "Retrieve authenticated user's profile",
+          "authentication": true,
+          "guards": ["JwtAuthGuard"],
+          "responses": {
+            "200": {
+              "description": "User profile retrieved",
+              "content": "User object"
+            },
+            "401": "Invalid or expired token"
+          }
+        },
+        {
+          "method": "PATCH",
+          "path": "/auth/me",
+          "summary": "Update current user profile",
+          "description": "Update authenticated user's profile information",
+          "authentication": true,
+          "guards": ["JwtAuthGuard"],
+          "requestBody": {
+            "type": "UpdateUserDto",
+            "required": true,
+            "fields": {
+              "username": "string (optional)",
+              "email": "string (optional)",
+              "password": "string (optional, min 6 chars)",
+              "profilePicture": "string (optional)",
+              "isActive": "boolean (optional)"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Profile updated successfully",
+              "content": "Updated user object"
+            },
+            "401": "Invalid or expired token",
+            "400": "Invalid input data"
+          }
+        }
+      ]
+    },
+    "users": {
+      "prefix": "/users",
+      "description": "User management and profile operations",
+      "authentication": "mixed",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/users",
+          "summary": "Create new user",
+          "description": "Create user account with optional profile picture",
+          "authentication": false,
+          "fileUpload": {
+            "enabled": true,
+            "fieldName": "profilePicture",
+            "optional": true
+          },
+          "requestBody": {
+            "type": "CreateUserDto",
+            "contentTypes": ["application/json", "multipart/form-data"]
+          },
+          "responses": {
+            "201": "User created successfully",
+            "400": "Invalid input or user exists"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/users",
+          "summary": "Get all users",
+          "description": "Retrieve list of all users",
+          "authentication": false,
+          "responses": {
+            "200": {
+              "description": "List of users",
+              "content": "Array of user objects"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/users/search",
+          "summary": "Search users",
+          "description": "Search for users by username (excludes friends, blocked users)",
+          "authentication": true,
+          "guards": ["JwtAuthGuard"],
+          "rateLimit": "20 searches per minute",
+          "queryParameters": {
+            "q": "string (required) - search query",
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page (max 100)"
+          },
+          "responses": {
+            "200": {
+              "description": "Search results with pagination",
+              "content": {
+                "data": "Array of user objects",
+                "pagination": "Pagination object"
+              }
+            },
+            "400": "Invalid search parameters"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/users/:id",
+          "summary": "Get user by ID",
+          "description": "Retrieve specific user profile",
+          "authentication": false,
+          "pathParameters": {
+            "id": "string - user ID"
+          },
+          "responses": {
+            "200": "User profile data",
+            "404": "User not found"
+          }
+        },
+        {
+          "method": "PATCH",
+          "path": "/users/:id",
+          "summary": "Update user",
+          "description": "Update user profile information",
+          "authentication": false,
+          "pathParameters": {
+            "id": "string - user ID"
+          },
+          "requestBody": {
+            "type": "UpdateUserDto"
+          },
+          "responses": {
+            "200": "User updated successfully",
+            "404": "User not found",
+            "400": "Invalid input data"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/users/:id/deactivate",
+          "summary": "Deactivate user account (Admin Only)",
+          "description": "Safely deactivate user account. Requires admin authentication (users without email field).",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "pathParameters": {
+            "id": "string - user ID"
+          },
+          "responses": {
+            "200": {
+              "description": "User deactivated successfully",
+              "content": {
+                "message": "string",
+                "user": "Updated user object"
+              }
+            },
+            "404": "User not found",
+            "400": "User already deactivated",
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/users/:id/reactivate",
+          "summary": "Reactivate user account (Admin Only)",
+          "description": "Reactivate previously deactivated account. Requires admin authentication (users without email field).",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "pathParameters": {
+            "id": "string - user ID"
+          },
+          "responses": {
+            "200": {
+              "description": "User reactivated successfully",
+              "content": {
+                "message": "string",
+                "user": "Updated user object"
+              }
+            },
+            "404": "User not found",
+            "400": "User already active",
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/users/me/deactivate",
+          "summary": "Self-deactivate account",
+          "description": "Allow user to deactivate their own account",
+          "authentication": true,
+          "guards": ["JwtAuthGuard"],
+          "responses": {
+            "200": "Account deactivated successfully",
+            "400": "Account already deactivated"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/users/profile-picture",
+          "summary": "Upload profile picture",
+          "description": "Upload or update user's profile picture",
+          "authentication": true,
+          "guards": ["JwtAuthGuard"],
+          "rateLimit": "5 uploads per minute",
+          "fileUpload": {
+            "enabled": true,
+            "fieldName": "profilePicture",
+            "required": true
+          },
+          "requestBody": {
+            "type": "UploadProfilePictureDto",
+            "contentTypes": ["multipart/form-data"]
+          },
+          "responses": {
+            "200": "Profile picture uploaded successfully",
+            "400": "Invalid file format or too large",
+            "404": "User not found"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/users/admin/all-profiles",
+          "summary": "Get all user profiles (Admin)",
+          "description": "Returns all user profiles across the platform with pagination",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All user profiles retrieved successfully",
+              "content": {
+                "data": "Array of user profile objects",
+                "pagination": "Pagination object"
+              }
             }
           }
         }
-      },
-      "fileUpload": {
-        "profilePictures": {
-          "storage": "Google Cloud Storage",
-          "allowedTypes": ["image/jpeg", "image/png", "image/webp"],
-          "maxSize": "5MB",
-          "processing": "Automatic resizing and optimization"
+      ]
+    },
+    "friends": {
+      "prefix": "/friends",
+      "description": "Friend management and social networking",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard"],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/friends/request",
+          "summary": "Send friend request",
+          "description": "Send friend request to another user",
+          "rateLimit": "5 requests per minute",
+          "requestBody": {
+            "type": "SendFriendRequestDto",
+            "fields": {
+              "requesteeId": "string - target user ID"
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Friend request sent successfully",
+              "content": "Complete friendship object with user details"
+            },
+            "400": "Cannot send request (duplicate, self-request, etc.)",
+            "404": "User not found"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/friends/request/:requesteeId",
+          "summary": "Cancel friend request",
+          "description": "Cancel previously sent friend request",
+          "pathParameters": {
+            "requesteeId": "string - requestee user ID"
+          },
+          "responses": {
+            "200": "Friend request cancelled successfully",
+            "404": "Friend request not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/friends/request/:requesterId/respond",
+          "summary": "Respond to friend request",
+          "description": "Accept or reject incoming friend request",
+          "pathParameters": {
+            "requesterId": "string - requester user ID"
+          },
+          "requestBody": {
+            "type": "RespondFriendRequestDto",
+            "fields": {
+              "status": "string - 'ACCEPTED' or 'REJECTED'"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Response processed successfully",
+              "content": "Different response based on action (accept/reject)"
+            },
+            "404": "Friend request not found",
+            "400": "Invalid request state"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/requests",
+          "summary": "Get friend requests",
+          "description": "Get both received and sent friend requests with pagination",
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "Friend requests retrieved successfully",
+              "content": {
+                "receivedRequests": "Paginated received requests",
+                "sentRequests": "Paginated sent requests"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends",
+          "summary": "Get friends list",
+          "description": "Get user's confirmed friends with pagination",
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "Friends list retrieved successfully",
+              "content": {
+                "data": "Array of friend objects with friendship info",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/search",
+          "summary": "Search friends",
+          "description": "Search within user's friends by username",
+          "queryParameters": {
+            "q": "string (optional) - search query",
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "Friend search results",
+              "content": "Paginated friend search results"
+            }
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/friends/:friendId",
+          "summary": "Remove friend",
+          "description": "Remove friendship connection",
+          "pathParameters": {
+            "friendId": "string - friend user ID"
+          },
+          "responses": {
+            "200": "Friend removed successfully",
+            "404": "Friendship not found"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/friends/block/:userId",
+          "summary": "Block user",
+          "description": "Block user to prevent interactions",
+          "pathParameters": {
+            "userId": "string - user ID to block"
+          },
+          "responses": {
+            "201": {
+              "description": "User blocked successfully",
+              "content": {
+                "message": "string",
+                "blockedUser": "User object"
+              }
+            },
+            "400": "Cannot block user",
+            "404": "User not found"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/friends/block/:userId",
+          "summary": "Unblock user",
+          "description": "Remove block on previously blocked user",
+          "pathParameters": {
+            "userId": "string - user ID to unblock"
+          },
+          "responses": {
+            "200": "User unblocked successfully",
+            "404": "Block relationship not found"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/blocked",
+          "summary": "Get blocked users",
+          "description": "Get list of blocked users with pagination",
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "Blocked users retrieved successfully",
+              "content": "Paginated blocked users list"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/profile/:friendId",
+          "summary": "Get friend profile",
+          "description": "Get detailed profile of confirmed friend",
+          "pathParameters": {
+            "friendId": "string - friend user ID"
+          },
+          "responses": {
+            "200": {
+              "description": "Friend profile retrieved successfully",
+              "content": {
+                "friend": "Friend profile object",
+                "friendship": "Friendship details"
+              }
+            },
+            "400": "Cannot get own profile",
+            "404": "Friend not found or not friends"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/admin/all-requests",
+          "summary": "Get all friend requests (Admin)",
+          "description": "Returns all friend requests across the platform with pagination",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All friend requests retrieved successfully",
+              "content": {
+                "data": "Array of friendship objects with user details",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/admin/pending-requests",
+          "summary": "Get all pending friend requests (Admin)",
+          "description": "Returns all pending friend requests across the platform with pagination",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All pending friend requests retrieved successfully",
+              "content": {
+                "data": "Array of pending friendship objects with user details",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/admin/all-friends",
+          "summary": "Get all user friends (Admin)",
+          "description": "Returns all accepted friendships across the platform with pagination",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All user friendships retrieved successfully",
+              "content": {
+                "data": "Array of accepted friendship objects with user details",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/friends/admin/blocked-users",
+          "summary": "Get all blocked users (Admin)",
+          "description": "Returns all block relationships across the platform with pagination",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All blocked users retrieved successfully",
+              "content": {
+                "data": "Array of block objects with user details",
+                "pagination": "Pagination object"
+              }
+            }
+          }
         }
+      ]
+    },
+    "location": {
+      "prefix": "/location",
+      "description": "Location sharing and management",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard"],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/location/status",
+          "summary": "Get location status",
+          "description": "Get current user's location sharing status and settings",
+          "responses": {
+            "200": {
+              "description": "Location status retrieved successfully",
+              "content": {
+                "isLiveLocationOn": "boolean",
+                "allowLocationHistory": "boolean",
+                "privacyLevel": "string",
+                "selectedFriendIds": "array",
+                "expiresAt": "datetime or null",
+                "lastUpdated": "datetime"
+              }
+            }
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/location/update",
+          "summary": "Update location",
+          "description": "Update user's current location coordinates",
+          "rateLimit": "3 updates per second",
+          "requestBody": {
+            "type": "UpdateLocationDto",
+            "fields": {
+              "latitude": "number (-90 to 90)",
+              "longitude": "number (-180 to 180)",
+              "accuracy": "number (optional)",
+              "isLiveLocationOn": "boolean (optional)"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Location updated successfully",
+              "content": {
+                "message": "string",
+                "shouldBroadcast": "boolean",
+                "location": "location object",
+                "broadcastInfo": "broadcast statistics"
+              }
+            },
+            "400": "Invalid location data"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/friends",
+          "summary": "Get friends' locations",
+          "description": "Get current locations of friends with distance calculations",
+          "responses": {
+            "200": {
+              "description": "Friends locations with distances",
+              "content": "Array of friend location objects with calculated distances"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/user/:userId",
+          "summary": "Get specific user location",
+          "description": "Get location of specific user (if authorized)",
+          "pathParameters": {
+            "userId": "string - user ID"
+          },
+          "responses": {
+            "200": "User location retrieved successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/privacy",
+          "summary": "Get location privacy settings",
+          "description": "Retrieve current location privacy configuration",
+          "responses": {
+            "200": "Privacy settings retrieved successfully"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/location/privacy",
+          "summary": "Update location privacy",
+          "description": "Update location sharing privacy settings",
+          "requestBody": {
+            "type": "UpdateLocationPrivacyDto",
+            "fields": {
+              "privacyLevel": "string (optional) - 'ALL_FRIENDS', 'SELECTED_FRIENDS', 'NOBODY'",
+              "allowLocationHistory": "boolean (optional)",
+              "selectedFriendIds": "array (optional) - friend IDs for SELECTED_FRIENDS"
+            }
+          },
+          "responses": {
+            "200": "Privacy settings updated successfully",
+            "400": "Invalid privacy level or friend IDs"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/location/live-location/toggle",
+          "summary": "Toggle live location",
+          "description": "Enable/disable live location sharing",
+          "rateLimit": "10 toggles per minute",
+          "requestBody": {
+            "type": "ToggleLiveLocationDto",
+            "fields": {
+              "expiresAt": "string (optional) - ISO datetime for auto-disable"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Live location toggled successfully",
+              "content": {
+                "message": "string",
+                "isLiveLocationOn": "boolean",
+                "expiresAt": "datetime or null"
+              }
+            },
+            "400": "Invalid expiration date"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/location/favorites",
+          "summary": "Create favorite location",
+          "description": "Create new favorite location",
+          "requestBody": {
+            "type": "CreateFavoriteLocationDto",
+            "fields": {
+              "name": "string (required)",
+              "description": "string (optional)",
+              "latitude": "number (required, -90 to 90)",
+              "longitude": "number (required, -180 to 180)",
+              "address": "string (optional)",
+              "category": "string (optional)",
+              "privacyLevel": "string (optional)",
+              "selectedFriendIds": "array (optional)",
+              "proximityDistance": "number (optional, 50-1000m)"
+            }
+          },
+          "responses": {
+            "201": "Favorite location created successfully",
+            "400": "Invalid input data"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/favorites",
+          "summary": "Get favorite locations",
+          "description": "Get all user's favorite locations",
+          "responses": {
+            "200": {
+              "description": "Favorite locations retrieved",
+              "content": "Array of favorite location objects"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/favorites/:favoriteLocationId",
+          "summary": "Get favorite location by ID",
+          "description": "Get specific favorite location details",
+          "pathParameters": {
+            "favoriteLocationId": "string - favorite location ID"
+          },
+          "responses": {
+            "200": "Favorite location retrieved successfully",
+            "404": "Favorite location not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/location/favorites/:favoriteLocationId",
+          "summary": "Update favorite location",
+          "description": "Update existing favorite location",
+          "pathParameters": {
+            "favoriteLocationId": "string - favorite location ID"
+          },
+          "requestBody": {
+            "type": "UpdateFavoriteLocationDto"
+          },
+          "responses": {
+            "200": "Favorite location updated successfully",
+            "400": "Invalid input data"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/location/favorites/:favoriteLocationId",
+          "summary": "Delete favorite location",
+          "description": "Remove favorite location",
+          "pathParameters": {
+            "favoriteLocationId": "string - favorite location ID"
+          },
+          "responses": {
+            "200": "Favorite location deleted successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/favorites/:favoriteLocationId/privacy",
+          "summary": "Get favorite location privacy",
+          "description": "Get privacy settings for specific favorite location",
+          "pathParameters": {
+            "favoriteLocationId": "string - favorite location ID"
+          },
+          "responses": {
+            "200": "Privacy settings retrieved successfully",
+            "400": "Favorite location not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/location/favorites/:favoriteLocationId/privacy",
+          "summary": "Update favorite location privacy",
+          "description": "Update privacy settings for specific favorite location",
+          "pathParameters": {
+            "favoriteLocationId": "string - favorite location ID"
+          },
+          "requestBody": {
+            "type": "UpdateFavoriteLocationPrivacyDto"
+          },
+          "responses": {
+            "200": "Privacy settings updated successfully",
+            "400": "Invalid input data or favorite location not found"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/friends/favorites",
+          "summary": "Get friends' favorite locations",
+          "description": "View favorite locations shared by friends",
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page",
+            "category": "string (optional) - filter by category",
+            "friendId": "string (optional) - filter by specific friend"
+          },
+          "responses": {
+            "200": {
+              "description": "Friends' favorite locations retrieved",
+              "content": "Paginated list of shared favorite locations"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/history",
+          "summary": "Get location history",
+          "description": "Retrieve user's location history with pagination and filtering",
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page",
+            "startDate": "string (optional) - start date for filtering (ISO format)",
+            "endDate": "string (optional) - end date for filtering (ISO format)"
+          },
+          "responses": {
+            "200": "Location history retrieved successfully",
+            "400": "Invalid date format or pagination parameters"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/location/history/:historyId",
+          "summary": "Delete location history record",
+          "description": "Delete specific location history entry",
+          "pathParameters": {
+            "historyId": "string - history record ID"
+          },
+          "responses": {
+            "200": "Location history record deleted successfully"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/location/history",
+          "summary": "Delete all location history",
+          "description": "Clear all location history for user",
+          "responses": {
+            "200": "All location history deleted successfully"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/location/history/toggle",
+          "summary": "Toggle location history tracking",
+          "description": "Enable or disable location history tracking",
+          "requestBody": {
+            "fields": {
+              "enabled": "boolean - enable/disable history tracking"
+            }
+          },
+          "responses": {
+            "200": "Location history setting updated successfully",
+            "400": "Invalid input data"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/cache/status",
+          "summary": "Get cache status",
+          "description": "Get comprehensive cache system status and health",
+          "responses": {
+            "200": {
+              "description": "Cache status retrieved successfully",
+              "content": {
+                "isRedisAvailable": "boolean",
+                "totalMemoryCacheEntries": "number",
+                "redisHits": "number",
+                "memoryHits": "number",
+                "misses": "number",
+                "redisErrors": "number",
+                "hitRate": "string",
+                "cacheStrategy": "string",
+                "redisConnectionStatus": "string",
+                "batchQueueSize": "number",
+                "lastHealthCheck": "datetime"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/cache/stats",
+          "summary": "Get cache statistics",
+          "description": "Get cache performance metrics",
+          "responses": {
+            "200": {
+              "description": "Cache statistics retrieved successfully",
+              "content": "Cache performance metrics object"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/admin/all-status",
+          "summary": "Get all location status (Admin)",
+          "description": "Returns all user location statuses across the platform with pagination",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All location statuses retrieved successfully",
+              "content": {
+                "data": "Array of location objects with decrypted coordinates and user details",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/admin/all-locations",
+          "summary": "Get all users locations (Admin)",
+          "description": "Returns all user locations across the platform with pagination and decrypted coordinates",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All user locations retrieved successfully",
+              "content": {
+                "data": "Array of location objects with decrypted coordinates",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/admin/user/:userId",
+          "summary": "Get user location (Admin)",
+          "description": "Returns specific user location with decrypted coordinates",
+          "authentication": true,
+          "adminOnly": true,
+          "pathParameters": {
+            "userId": "string - user ID"
+          },
+          "responses": {
+            "200": {
+              "description": "User location retrieved successfully",
+              "content": "Location object with decrypted coordinates and user details"
+            },
+            "404": "User location not found"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/admin/all-settings",
+          "summary": "Get all location settings (Admin)",
+          "description": "Returns all user location privacy and sharing settings",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All location settings retrieved successfully",
+              "content": {
+                "data": "Array of location settings with user details",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/admin/all-favorites",
+          "summary": "Get all favorite locations (Admin)",
+          "description": "Returns all favorite locations across users with pagination and decrypted coordinates",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All favorite locations retrieved successfully",
+              "content": {
+                "data": "Array of favorite location objects with decrypted coordinates",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/location/admin/all-history",
+          "summary": "Get all location history (Admin)",
+          "description": "Returns all location history across users with pagination and decrypted coordinates",
+          "authentication": true,
+          "adminOnly": true,
+          "queryParameters": {
+            "page": "number (optional) - page number",
+            "limit": "number (optional) - items per page"
+          },
+          "responses": {
+            "200": {
+              "description": "All location history retrieved successfully",
+              "content": {
+                "data": "Array of location history objects with decrypted coordinates",
+                "pagination": "Pagination object"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "notifications": {
+      "prefix": "/notifications",
+      "description": "Notification management and settings",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard"],
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "summary": "Get notifications",
+          "description": "Retrieve paginated notifications with optional filtering",
+          "queryParameters": {
+            "page": "number (optional) - page number (default: 1)",
+            "limit": "number (optional) - items per page (default: 20, max: 50)",
+            "unreadOnly": "boolean (optional) - filter to unread only (default: false)"
+          },
+          "responses": {
+            "200": {
+              "description": "Notifications retrieved successfully",
+              "content": {
+                "notifications": "Array of notification objects",
+                "total": "number",
+                "page": "number",
+                "limit": "number",
+                "totalPages": "number",
+                "hasNext": "boolean",
+                "hasPrev": "boolean",
+                "unreadCount": "number"
+              }
+            }
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/notifications/:id/read",
+          "summary": "Mark notification as read",
+          "description": "Mark specific notification as read",
+          "pathParameters": {
+            "id": "string - notification ID"
+          },
+          "responses": {
+            "200": {
+              "description": "Notification marked as read",
+              "content": {
+                "message": "string"
+              }
+            },
+            "404": "Notification not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/notifications/read-all",
+          "summary": "Mark all notifications as read",
+          "description": "Mark all unread notifications as read",
+          "rateLimit": "10 bulk operations per minute",
+          "responses": {
+            "200": {
+              "description": "All notifications marked as read",
+              "content": {
+                "message": "string"
+              }
+            }
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/notifications/:id",
+          "summary": "Delete notification",
+          "description": "Delete specific notification",
+          "pathParameters": {
+            "id": "string - notification ID"
+          },
+          "responses": {
+            "200": {
+              "description": "Notification deleted successfully",
+              "content": {
+                "message": "string"
+              }
+            },
+            "404": "Notification not found"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/notifications/settings",
+          "summary": "Get notification settings",
+          "description": "Retrieve current notification preferences",
+          "responses": {
+            "200": {
+              "description": "Notification settings retrieved successfully",
+              "content": {
+                "userId": "string",
+                "friendRequestNotifications": "boolean",
+                "locationNotifications": "boolean",
+                "proximityNotifications": "boolean",
+                "proximityDistance": "number (100-5000m)",
+                "favoriteLocationNotifications": "boolean",
+                "updatedAt": "datetime"
+              }
+            }
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/notifications/settings",
+          "summary": "Update notification settings",
+          "description": "Update notification preferences with strict enforcement",
+          "requestBody": {
+            "type": "UpdateNotificationSettingsDto",
+            "fields": {
+              "friendRequestNotifications": "boolean (optional)",
+              "locationNotifications": "boolean (optional)",
+              "proximityNotifications": "boolean (optional)",
+              "proximityDistance": "number (optional, 100-5000m)",
+              "favoriteLocationNotifications": "boolean (optional)"
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Settings updated successfully",
+              "content": "Updated notification settings object"
+            },
+            "400": "Invalid settings values"
+          }
+        }
+      ]
+    },
+    "admin_dashboard": {
+      "prefix": "/admin/dashboard",
+      "description": "Admin dashboard and analytics endpoints",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard", "AdminGuard"],
+      "adminOnly": true,
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/admin/dashboard/stats",
+          "summary": "Get dashboard statistics",
+          "description": "Retrieve comprehensive platform analytics including users, friendships, locations, notifications, and system metrics",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "responses": {
+            "200": {
+              "description": "Dashboard statistics retrieved successfully",
+              "content": {
+                "overview": "Platform overview statistics",
+                "userGrowth": "User registration trends",
+                "engagement": "User engagement metrics",
+                "locations": "Location usage statistics",
+                "system": "System health and cache status"
+              }
+            },
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/dashboard/activity",
+          "summary": "Get recent activity",
+          "description": "Retrieve recent user registrations, friendships, and location updates across the platform",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "queryParameters": {
+            "limit": "number (optional) - items per category (max: 50, default: 10)"
+          },
+          "responses": {
+            "200": {
+              "description": "Recent activity retrieved successfully",
+              "content": {
+                "recentUsers": "Array of recently registered users",
+                "recentFriendships": "Array of recent friendship activities",
+                "recentLocations": "Array of recent location updates with decrypted coordinates"
+              }
+            },
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/dashboard/analytics/users",
+          "summary": "Get user analytics",
+          "description": "Retrieve user growth trends and registration analytics over specified time period",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "queryParameters": {
+            "days": "number (optional) - analysis period in days (max: 365, default: 30)"
+          },
+          "responses": {
+            "200": {
+              "description": "User analytics retrieved successfully",
+              "content": {
+                "userGrowthByDay": "Daily user registration data",
+                "friendshipGrowthByDay": "Daily friendship formation data"
+              }
+            },
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/dashboard/analytics/locations",
+          "summary": "Get location analytics",
+          "description": "Retrieve location usage statistics including privacy settings, favorite categories, and live location patterns",
+          "authentication": true,
+          "guards": ["JwtAuthGuard", "AdminGuard"],
+          "adminOnly": true,
+          "responses": {
+            "200": {
+              "description": "Location analytics retrieved successfully",
+              "content": {
+                "locationPrivacyStats": "Privacy level distribution",
+                "favoriteLocationCategories": "Favorite location categories breakdown",
+                "liveLocationUsage": "Live location usage patterns"
+              }
+            },
+            "403": "Admin access required",
+            "401": "Authentication required"
+          }
+        }
+      ]
+    }
+  },
+  "webSocketEndpoints": {
+    "location": {
+      "namespace": "/location",
+      "description": "Real-time location sharing and updates",
+      "authentication": "JWT token required",
+      "events": {
+        "incoming": {
+          "connected": "Connection established confirmation",
+          "updateLocation": "Send location update to server",
+          "joinLocationUpdates": "Join room to receive friend location updates",
+          "leaveLocationUpdates": "Leave location updates room",
+          "toggleLiveLocation": "Enable/disable live location sharing"
+        },
+        "outgoing": {
+          "friendLocationUpdate": "Receive friend location update with distance",
+          "locationUpdated": "Confirmation of location update",
+          "friendsLocations": "Current locations of all friends",
+          "liveLocationToggled": "Confirmation of live location toggle",
+          "leftLocationUpdates": "Confirmation of leaving updates room",
+          "error": "Error message for failed operations"
+        }
+      },
+      "features": [
+        "Real-time distance calculations",
+        "Automatic friend location broadcasting",
+        "Live location sharing with expiration",
+        "Room-based location updates",
+        "Hybrid caching for performance"
+      ]
+    },
+    "notifications": {
+      "namespace": "/notifications",
+      "description": "Real-time notification delivery",
+      "authentication": "JWT token required in auth.token",
+      "events": {
+        "incoming": {
+          "markAsRead": "Mark notification as read",
+          "markAllAsRead": "Mark all notifications as read",
+          "getNotifications": "Request notifications list",
+          "deleteNotification": "Delete specific notification"
+        },
+        "outgoing": {
+          "notification": "New notification received",
+          "unreadCount": "Updated unread count",
+          "notificationRead": "Confirmation of read status",
+          "allNotificationsRead": "Confirmation of bulk read",
+          "notificationDeleted": "Confirmation of deletion"
+        }
+      },
+      "notificationTypes": [
+        "FRIEND_REQUEST_RECEIVED",
+        "FRIEND_REQUEST_ACCEPTED",
+        "FRIEND_ARRIVED_AT_FAVORITE",
+        "FRIENDS_NEAR_FAVORITE",
+        "FRIEND_NEARBY"
+      ]
+    }
+  },
+  "dataModels": {
+    "User": {
+      "fields": {
+        "id": "string (UUID)",
+        "email": "string (unique)",
+        "username": "string (unique, 3-20 chars)",
+        "password": "string (hashed, min 6 chars)",
+        "profilePicture": "string (nullable, GCS URL)",
+        "isActive": "boolean (default: true)",
+        "userType": "enum (USER, ADMIN)",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
+    },
+    "Friendship": {
+      "fields": {
+        "id": "string (UUID)",
+        "requesterId": "string (User FK)",
+        "requesteeId": "string (User FK)",
+        "status": "enum (PENDING, ACCEPTED, REJECTED)",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
+    },
+    "Location": {
+      "fields": {
+        "id": "string (UUID)",
+        "userId": "string (User FK)",
+        "latitude": "string (encrypted)",
+        "longitude": "string (encrypted)",
+        "accuracy": "number (nullable)",
+        "isLiveLocationOn": "boolean (default: false)",
+        "allowLocationHistory": "boolean (default: true)",
+        "privacyLevel": "enum (ALL_FRIENDS, SELECTED_FRIENDS, NOBODY)",
+        "selectedFriendIds": "string[] (JSON)",
+        "expiresAt": "datetime (nullable)",
+        "updatedAt": "datetime"
+      }
+    },
+    "FavoriteLocation": {
+      "fields": {
+        "id": "string (UUID)",
+        "userId": "string (User FK)",
+        "name": "string",
+        "description": "string (nullable)",
+        "latitude": "string (encrypted)",
+        "longitude": "string (encrypted)",
+        "address": "string (nullable)",
+        "category": "string (nullable)",
+        "privacyLevel": "enum",
+        "selectedFriendIds": "string[] (JSON)",
+        "proximityDistance": "number (50-1000, default: 100)",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
+    },
+    "Notification": {
+      "fields": {
+        "id": "string (UUID)",
+        "userId": "string (User FK)",
+        "type": "enum (NotificationType)",
+        "title": "string",
+        "message": "string",
+        "data": "JSON (nullable)",
+        "isRead": "boolean (default: false)",
+        "createdAt": "datetime",
+        "expiresAt": "datetime (nullable)"
+      }
+    },
+    "Block": {
+      "fields": {
+        "id": "string (UUID)",
+        "blockerId": "string (User FK)",
+        "blockedId": "string (User FK)",
+        "createdAt": "datetime"
       }
     }
+  },
+  "securityFeatures": {
+    "authentication": {
+      "type": "JWT with refresh tokens",
+      "accessTokenExpiry": "15 minutes",
+      "refreshTokenExpiry": "7 days",
+      "multiDeviceSupport": false,
+      "tokenRevocation": "On logout/refresh"
+    },
+    "dataEncryption": {
+      "locationData": "AES encryption for coordinates",
+      "passwordHashing": "bcrypt with salt rounds: 12",
+      "sensitiveFields": ["latitude", "longitude"]
+    },
+    "rateLimiting": {
+      "enabled": true,
+      "strategies": [
+        "Short-term: 3 requests per second",
+        "Medium-term: 5-20 requests per minute",
+        "Long-term: 3-5 requests per minute"
+      ]
+    },
+    "validation": {
+      "globalPipes": true,
+      "dtoValidation": "class-validator",
+      "sanitization": "whitelist and transform"
+    },
+    "cors": {
+      "enabled": true,
+      "credentials": true,
+      "configurable": "Environment-based"
+    }
+  },
+  "adminEndpoints": {
+    "description": "Admin-specific endpoints for platform monitoring and management",
+    "authentication": "JWT required for all admin endpoints",
+    "authorization": "Admin access required (users without email field - external admin service)",
+    "guards": ["JwtAuthGuard", "AdminGuard"],
+    "basePrefix": "Various controllers with /admin/ path",
+    "endpoints": {
+      "health": [
+        {
+          "path": "/health",
+          "method": "GET",
+          "description": "Comprehensive system health check"
+        }
+      ],
+      "users": [
+        {
+          "path": "/users/admin/all-profiles",
+          "method": "GET",
+          "description": "Get all user profiles with pagination"
+        }
+      ],
+      "friends": [
+        {
+          "path": "/friends/admin/all-requests",
+          "method": "GET", 
+          "description": "Get all friend requests across platform"
+        },
+        {
+          "path": "/friends/admin/pending-requests",
+          "method": "GET",
+          "description": "Get all pending friend requests"
+        },
+        {
+          "path": "/friends/admin/all-friends",
+          "method": "GET",
+          "description": "Get all accepted friendships"
+        },
+        {
+          "path": "/friends/admin/blocked-users",
+          "method": "GET",
+          "description": "Get all blocked user relationships"
+        }
+      ],
+      "location": [
+        {
+          "path": "/location/admin/all-status",
+          "method": "GET",
+          "description": "Get all user location statuses"
+        },
+        {
+          "path": "/location/admin/all-locations",
+          "method": "GET",
+          "description": "Get all user locations with decrypted coordinates"
+        },
+        {
+          "path": "/location/admin/user/:userId",
+          "method": "GET",
+          "description": "Get specific user location"
+        },
+        {
+          "path": "/location/admin/all-settings",
+          "method": "GET",
+          "description": "Get all location privacy settings"
+        },
+        {
+          "path": "/location/admin/all-favorites",
+          "method": "GET",
+          "description": "Get all favorite locations across users"
+        },
+        {
+          "path": "/location/admin/all-history",
+          "method": "GET",
+          "description": "Get all location history across users"
+        }
+      ],
+      "dashboard": [
+        {
+          "path": "/admin/dashboard/stats",
+          "method": "GET",
+          "description": "Get comprehensive dashboard statistics"
+        },
+        {
+          "path": "/admin/dashboard/activity",
+          "method": "GET",
+          "description": "Get recent platform activity"
+        },
+        {
+          "path": "/admin/dashboard/analytics/users",
+          "method": "GET",
+          "description": "Get user growth analytics"
+        },
+        {
+          "path": "/admin/dashboard/analytics/locations",
+          "method": "GET",
+          "description": "Get location usage analytics"
+        }
+      ]
+    },
+    "features": [
+      "Platform-wide data access",
+      "Decrypted location coordinates for admin view",
+      "Comprehensive user monitoring",
+      "Friendship relationship oversight",
+      "System health monitoring",
+      "Pagination support for large datasets",
+      "Real-time platform analytics"
+    ],
+    "useCases": [
+      "External admin dashboard integration",
+      "Platform monitoring systems",
+      "Analytics and reporting tools",
+      "Compliance and audit systems",
+      "Customer support tools"
+    ]
+  },
+  "cachingSystem": {
+    "type": "Hybrid Redis + Memory",
+    "strategy": "Redis primary with memory fallback",
+    "features": [
+      "Automatic fallback on Redis failure",
+      "Real-time health monitoring",
+      "Performance metrics tracking",
+      "Batch processing for location history"
+    ],
+    "endpoints": [
+      "GET /location/cache/status",
+      "GET /location/cache/stats"
+    ]
   }
-  
+}

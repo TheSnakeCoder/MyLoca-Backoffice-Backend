@@ -1,19 +1,18 @@
 import { Module } from '@nestjs/common';
-import { ExternalApiModule } from '../external-api/external-api.module';
+import { MylocaApiModule } from '../myloca-api/myloca-api.module';
 import { AdminUsersController } from './admin-users.controller';
 import { AdminLocationsController } from './admin-locations.controller';
-import { AdminNotificationsController } from './admin-notifications.controller';
 import { AdminDashboardController } from './admin-dashboard.controller';
-import { AdminTestController } from './admin-test.controller';
+import { AdminFriendsController } from './admin-friends.controller';
 
 @Module({
-  imports: [ExternalApiModule],
+  imports: [MylocaApiModule],
   controllers: [
     AdminUsersController,
     AdminLocationsController,
-    AdminNotificationsController,
     AdminDashboardController,
-    AdminTestController,
+    AdminFriendsController,
   ],
+  providers: [],
 })
 export class AdminOversightModule {}
