@@ -101,6 +101,7 @@ Comprehensive admin oversight API for the MyLoca live location sharing platform.
       },
       'bearer',
     )
+    .addTag('Authentication', 'Admin authentication and session management')
     .addTag('Admin Dashboard', 'Dashboard statistics, analytics, and system health monitoring')
     .addTag('Admin Users', 'User management and profile oversight')
     .addTag('Admin Friends', 'Friendship monitoring and social network oversight')
