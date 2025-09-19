@@ -3,6 +3,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MylocaApiService } from '../myloca-api/myloca-api.service';
 import { GetCurrentUser } from '../auth/decorators/get-current-user.decorator';
 import { GetJwtToken } from '../auth/decorators/get-jwt-token.decorator';
+import { PaginationQueryDto } from './dto/common.dto';
+import { LocationHistoryQueryDto } from './dto/locations.dto';
 import {
   ApiLocationsController,
   ApiGetAllActiveLocations,
@@ -31,17 +33,16 @@ export class AdminLocationsController {
   @Get('active-users')
   @ApiGetAllActiveLocations()
   async getAllActiveLocations(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query() pagination: PaginationQueryDto,
     @GetCurrentUser('username') adminUsername?: string,
     @GetJwtToken() jwtToken?: string,
   ) {
-    console.log(`Admin ${adminUsername} viewing all active user locations`);
+    console.log(`Admin ${adminUsername} viewing all active user locations - Page: ${pagination.page || 1}, Limit: ${pagination.limit || 20}`);
     // Use the correct method from the updated service
     if (!jwtToken) {
       throw new Error('JWT token is required for admin operations');
     }
-    return this.externalApiService.getAllUsersLocations(jwtToken, page, limit);
+    return this.externalApiService.getAllUsersLocations(jwtToken, pagination.page, pagination.limit);
   }
 
   @Get('user/:userId')

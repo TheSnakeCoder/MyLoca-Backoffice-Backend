@@ -3,6 +3,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MylocaApiService } from '../myloca-api/myloca-api.service';
 import { GetCurrentUser } from '../auth/decorators/get-current-user.decorator';
 import { GetJwtToken } from '../auth/decorators/get-jwt-token.decorator';
+import { DashboardActivityQueryDto, UserAnalyticsQueryDto } from './dto/dashboard.dto';
 import {
   ApiDashboardController,
   ApiGetDashboardStats,
@@ -38,33 +39,33 @@ export class AdminDashboardController {
   @Get('activity')
   @ApiGetDashboardActivity()
   async getDashboardActivity(
-    @Query('limit') limit?: number,
+    @Query() query: DashboardActivityQueryDto,
     @GetCurrentUser('username') adminUsername?: string,
     @GetJwtToken() jwtToken?: string,
   ) {
-    console.log(`Admin ${adminUsername} viewing recent activity`);
+    console.log(`Admin ${adminUsername} viewing recent activity - Limit: ${query.limit || 50}`);
     
     if (!jwtToken) {
       throw new Error('JWT token is required for admin operations');
     }
     
-    return this.externalApiService.getDashboardActivity(jwtToken, limit);
+    return this.externalApiService.getDashboardActivity(jwtToken, query.limit);
   }
 
   @Get('analytics/users')
   @ApiGetUserAnalytics()
   async getUserAnalytics(
-    @Query('days') days?: number,
+    @Query() query: UserAnalyticsQueryDto,
     @GetCurrentUser('username') adminUsername?: string,
     @GetJwtToken() jwtToken?: string,
   ) {
-    console.log(`Admin ${adminUsername} viewing user analytics`);
+    console.log(`Admin ${adminUsername} viewing user analytics - Days: ${query.days || 30}`);
     
     if (!jwtToken) {
       throw new Error('JWT token is required for admin operations');
     }
     
-    return this.externalApiService.getDashboardUserAnalytics(jwtToken, days);
+    return this.externalApiService.getDashboardUserAnalytics(jwtToken, query.days);
   }
 
   @Get('analytics/locations')
@@ -84,7 +85,10 @@ export class AdminDashboardController {
 
   @Get('health')
   @ApiGetSystemHealth()
-  async getSystemHealth(@GetCurrentUser('username') adminUsername?: string) {
+  async getSystemHealth(
+    @GetCurrentUser('username') adminUsername?: string,
+    @GetJwtToken() jwtToken?: string,
+  ) {
     console.log(`Admin ${adminUsername} checking system health`);
     
     const healthCheck = {
@@ -98,12 +102,16 @@ export class AdminDashboardController {
     };
 
     try {
-      // Test connection to external API with health check endpoint
-      const jwtToken = 'admin-health-check-token'; // This would need proper admin token
-      await this.externalApiService.getHealthCheck(jwtToken);
-      healthCheck.services.externalApi = true;
+      // Test connection to external API with proper JWT token
+      if (jwtToken) {
+        await this.externalApiService.getHealthCheck(jwtToken);
+        healthCheck.services.externalApi = true;
+      } else {
+        console.warn('No JWT token available for external API health check');
+      }
     } catch (error) {
       console.error('External API health check failed:', error.message);
+      // Keep externalApi as false
     }
 
     return healthCheck;

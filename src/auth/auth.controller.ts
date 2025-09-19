@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -15,13 +15,20 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CurrentUserType, GetCurrentUser, GetCurrentUserId } from './decorators/get-current-user.decorator';
+import { AuditLog, SkipAudit } from '../audit/audit.interceptor';
+import { AuditAction } from '../../generated/prisma';
+import { AuditService } from '../audit/audit.service';
 
 @Controller('auth')
 @ApiTags('Authentication')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Post('login')
+  @SkipAudit() // Skip audit interceptor for login since we handle it manually
   @ApiOperation({
     summary: 'Admin login',
     description: 'Authenticate admin user and obtain access/refresh tokens',
@@ -60,12 +67,28 @@ export class AuthController {
   @ApiBadRequestResponse({
     description: 'Invalid input data',
   })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Request() req) {
+    const result = await this.authService.login(loginDto);
+    
+    // Log successful login
+    if (result.admin) {
+      await this.auditService.logAdminAction(
+        result.admin.id,
+        AuditAction.LOGIN,
+        'auth',
+        req,
+        {
+          details: { username: loginDto.username },
+        },
+      );
+    }
+    
+    return result;
   }
 
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
+  @AuditLog(AuditAction.REFRESH_TOKEN, 'auth')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Refresh access token',
@@ -99,6 +122,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
+  @AuditLog(AuditAction.LOGOUT, 'auth')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Admin logout',
@@ -126,6 +150,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @AuditLog(AuditAction.VIEW_ADMIN, 'auth')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get current admin profile',
@@ -154,6 +179,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('create-admin')
+  @AuditLog(AuditAction.CREATE_ADMIN, 'admin')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create new admin account',
@@ -199,6 +225,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('admins')
+  @AuditLog(AuditAction.LIST_ADMINS, 'admin')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get all admin accounts',

@@ -3,13 +3,13 @@
     "name": "MyLoc Live Location Sharing API",
     "version": "1.0.0",
     "description": "Comprehensive location sharing and social networking API with admin monitoring capabilities",
-    "baseUrl": "http://51.75.119.35:3003",
+    "baseUrl": "http://localhost:3000",
     "documentation": "Swagger UI available at /api-docs",
-    "totalEndpoints": "89+ endpoints including 20 admin-specific endpoints",
+    "totalEndpoints": "140+ endpoints including 65+ admin-specific endpoints",
     "adminFeatures": {
       "enabled": true,
-      "description": "Admin endpoints for monitoring and managing the platform",
-      "endpoints": 20,
+      "description": "Admin endpoints for comprehensive platform monitoring and management",
+      "endpoints": 65,
       "features": [
         "Health monitoring",
         "User management", 
@@ -18,7 +18,12 @@
         "System analytics",
         "Real-time dashboard",
         "Platform analytics",
-        "Activity monitoring"
+        "Activity monitoring",
+        "Pro user management",
+        "Network administration",
+        "Subscription management",
+        "Quota monitoring",
+        "Revenue analytics"
       ]
     }
   },
@@ -1342,6 +1347,585 @@
         }
       ]
     },
+    "pro_users": {
+      "prefix": "/pro-user",
+      "description": "Pro user subscription and network management",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard", "ProUserGuard"],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/pro-user/convert",
+          "summary": "Convert to pro user",
+          "description": "Convert individual user to pro user with profile creation",
+          "requestBody": {
+            "type": "CreateProProfileDto",
+            "fields": {
+              "firstName": "string (required)",
+              "lastName": "string (required)",
+              "age": "number (optional)",
+              "gender": "string (optional)",
+              "whyUsingProVersion": "string (required)"
+            }
+          },
+          "responses": {
+            "201": "Successfully converted to pro user",
+            "400": "User already pro or invalid data",
+            "401": "Authentication required"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/pro-user/profile",
+          "summary": "Get pro profile",
+          "description": "Retrieve current user's pro profile information",
+          "responses": {
+            "200": "Pro profile retrieved successfully",
+            "404": "Pro profile not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/pro-user/profile",
+          "summary": "Update pro profile",
+          "description": "Update pro user profile information",
+          "requestBody": {
+            "type": "UpdateProProfileDto"
+          },
+          "responses": {
+            "200": "Profile updated successfully",
+            "400": "Invalid input data"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/pro-user/subscription",
+          "summary": "Get subscription details",
+          "description": "Get current subscription tier and details",
+          "responses": {
+            "200": "Subscription details retrieved successfully"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/pro-user/subscription/change-tier",
+          "summary": "Change subscription tier",
+          "description": "Change to different subscription tier with validation",
+          "requestBody": {
+            "type": "ChangeSubscriptionTierDto",
+            "fields": {
+              "newTier": "string (PRO_LITE, PRO_PLUS, PRO_PREMIUM)"
+            }
+          },
+          "responses": {
+            "200": "Subscription tier changed successfully",
+            "400": "Invalid tier or exceeds limits"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/pro-user/quota-status",
+          "summary": "Get quota usage status",
+          "description": "Get current quota usage and remaining limits",
+          "responses": {
+            "200": "Quota status retrieved successfully"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/pro-user/convert-to-individual",
+          "summary": "Convert to individual user",
+          "description": "Downgrade from pro to individual user",
+          "responses": {
+            "200": "Successfully converted to individual user",
+            "400": "Cannot convert due to active networks"
+          }
+        }
+      ]
+    },
+    "networks": {
+      "prefix": "/network",
+      "description": "Network management for pro users",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard", "ProUserGuard"],
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/network",
+          "summary": "Create network",
+          "description": "Create new network (pro users only)",
+          "requestBody": {
+            "type": "CreateNetworkDto",
+            "fields": {
+              "name": "string (required)",
+              "description": "string (optional)",
+              "isPublic": "boolean (default: true)",
+              "maxMembers": "number (optional)"
+            }
+          },
+          "responses": {
+            "201": "Network created successfully",
+            "400": "Invalid data or quota exceeded"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/network/my-networks",
+          "summary": "Get owned networks",
+          "description": "Get networks owned by current user",
+          "queryParameters": {
+            "page": "number (optional)",
+            "limit": "number (optional)"
+          },
+          "responses": {
+            "200": "Owned networks retrieved successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/network/memberships",
+          "summary": "Get network memberships",
+          "description": "Get networks user is a member of",
+          "queryParameters": {
+            "page": "number (optional)",
+            "limit": "number (optional)"
+          },
+          "responses": {
+            "200": "Network memberships retrieved successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/network/public",
+          "summary": "Get public networks",
+          "description": "Browse public networks with search and filtering",
+          "queryParameters": {
+            "search": "string (optional)",
+            "page": "number (optional)",
+            "limit": "number (optional)"
+          },
+          "responses": {
+            "200": "Public networks retrieved successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/network/:networkId",
+          "summary": "Get network details",
+          "description": "Get detailed network information",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Network details retrieved successfully",
+            "404": "Network not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/network/:networkId",
+          "summary": "Update network",
+          "description": "Update network details (owner only)",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "requestBody": {
+            "type": "UpdateNetworkDto"
+          },
+          "responses": {
+            "200": "Network updated successfully",
+            "403": "Not network owner"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/network/:networkId",
+          "summary": "Delete network",
+          "description": "Delete network (owner only)",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Network deleted successfully",
+            "403": "Not network owner"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/network/:networkId/join",
+          "summary": "Join network",
+          "description": "Join public network or apply to private network",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "requestBody": {
+            "type": "JoinNetworkDto",
+            "fields": {
+              "message": "string (optional) - application message"
+            }
+          },
+          "responses": {
+            "201": "Successfully joined or applied to network",
+            "400": "Cannot join network or quota exceeded"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/network/:networkId/leave",
+          "summary": "Leave network",
+          "description": "Leave network membership",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Successfully left network",
+            "404": "Not a member of network"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/network/:networkId/members",
+          "summary": "Get network members",
+          "description": "Get network member list with pagination",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "queryParameters": {
+            "page": "number (optional)",
+            "limit": "number (optional)"
+          },
+          "responses": {
+            "200": "Network members retrieved successfully"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/network/:networkId/members/:memberId",
+          "summary": "Remove network member",
+          "description": "Remove member from network (owner only)",
+          "pathParameters": {
+            "networkId": "string - network ID",
+            "memberId": "string - member user ID"
+          },
+          "responses": {
+            "200": "Member removed successfully",
+            "403": "Not network owner"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/network/:networkId/applications",
+          "summary": "Get network applications",
+          "description": "Get pending applications for network (owner only)",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Network applications retrieved successfully",
+            "403": "Not network owner"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/network/:networkId/applications/:applicationId",
+          "summary": "Respond to network application",
+          "description": "Accept or reject network application (owner only)",
+          "pathParameters": {
+            "networkId": "string - network ID",
+            "applicationId": "string - application ID"
+          },
+          "requestBody": {
+            "type": "RespondToApplicationDto",
+            "fields": {
+              "status": "string (ACCEPTED, REJECTED)"
+            }
+          },
+          "responses": {
+            "200": "Application response processed successfully",
+            "403": "Not network owner"
+          }
+        }
+      ]
+    },
+    "admin_pro_users": {
+      "prefix": "/admin/pro-users",
+      "description": "Admin endpoints for pro user management",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard", "AdminGuard"],
+      "adminOnly": true,
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/admin/pro-users",
+          "summary": "Get all pro users",
+          "description": "Retrieve paginated list of all pro users with filtering",
+          "queryParameters": {
+            "page": "number (optional)",
+            "limit": "number (optional, max: 50)",
+            "tier": "string (optional) - filter by subscription tier",
+            "isActive": "boolean (optional) - filter by active status"
+          },
+          "responses": {
+            "200": "Pro users retrieved successfully",
+            "403": "Admin access required"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/pro-users/:userId",
+          "summary": "Get pro user details",
+          "description": "Get detailed information about specific pro user",
+          "pathParameters": {
+            "userId": "string - pro user ID"
+          },
+          "responses": {
+            "200": "Pro user details retrieved successfully",
+            "404": "Pro user not found"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/admin/pro-users/convert/:userId",
+          "summary": "Convert user to pro (Admin)",
+          "description": "Admin conversion of individual user to pro user",
+          "pathParameters": {
+            "userId": "string - user ID to convert"
+          },
+          "requestBody": {
+            "type": "CreateProProfileDto"
+          },
+          "responses": {
+            "201": "User converted to pro successfully",
+            "400": "User already pro or invalid data"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/admin/pro-users/:userId/profile",
+          "summary": "Update pro user profile (Admin)",
+          "description": "Admin update of pro user profile",
+          "pathParameters": {
+            "userId": "string - pro user ID"
+          },
+          "requestBody": {
+            "type": "UpdateProProfileDto"
+          },
+          "responses": {
+            "200": "Pro user profile updated successfully"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/admin/pro-users/:userId/subscription",
+          "summary": "Change subscription tier (Admin)",
+          "description": "Admin force change of subscription tier",
+          "pathParameters": {
+            "userId": "string - pro user ID"
+          },
+          "queryParameters": {
+            "force": "boolean (optional) - force change even if exceeds limits"
+          },
+          "requestBody": {
+            "type": "ChangeSubscriptionTierDto"
+          },
+          "responses": {
+            "200": "Subscription tier changed successfully"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/admin/pro-users/:userId/convert-to-individual",
+          "summary": "Convert pro to individual (Admin)",
+          "description": "Admin conversion of pro user back to individual",
+          "pathParameters": {
+            "userId": "string - pro user ID"
+          },
+          "queryParameters": {
+            "force": "boolean (optional) - force conversion even with active networks"
+          },
+          "responses": {
+            "200": "User converted to individual successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/pro-users/analytics/overview",
+          "summary": "Get pro users analytics",
+          "description": "Comprehensive analytics about pro users",
+          "queryParameters": {
+            "days": "number (optional, max: 365) - analysis period"
+          },
+          "responses": {
+            "200": "Pro users analytics retrieved successfully"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/admin/pro-users/:userId/quota-limits",
+          "summary": "Update quota limits (Admin)",
+          "description": "Admin update of user quota limits",
+          "pathParameters": {
+            "userId": "string - pro user ID"
+          },
+          "requestBody": {
+            "fields": {
+              "unfriendQuotaLimit": "number (optional)",
+              "networkJoinQuotaLimit": "number (optional)",
+              "networkCreateQuotaLimit": "number (optional)"
+            }
+          },
+          "responses": {
+            "200": "Quota limits updated successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/pro-users/:userId/quota-status",
+          "summary": "Get quota status (Admin)",
+          "description": "Admin view of user quota usage",
+          "pathParameters": {
+            "userId": "string - pro user ID"
+          },
+          "responses": {
+            "200": "Quota status retrieved successfully"
+          }
+        }
+      ]
+    },
+    "admin_networks": {
+      "prefix": "/admin/networks",
+      "description": "Admin endpoints for network management",
+      "authentication": true,
+      "globalGuards": ["JwtAuthGuard", "AdminGuard"],
+      "adminOnly": true,
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/admin/networks",
+          "summary": "Get all networks",
+          "description": "Retrieve paginated list of all networks with filtering",
+          "queryParameters": {
+            "page": "number (optional)",
+            "limit": "number (optional, max: 50)",
+            "isPublic": "boolean (optional) - filter by public/private",
+            "ownerId": "string (optional) - filter by owner"
+          },
+          "responses": {
+            "200": "Networks retrieved successfully",
+            "403": "Admin access required"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/networks/:networkId",
+          "summary": "Get network details (Admin)",
+          "description": "Get detailed network information including all data",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Network details retrieved successfully",
+            "404": "Network not found"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/admin/networks/:networkId",
+          "summary": "Update network (Admin)",
+          "description": "Admin update of network details",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "requestBody": {
+            "type": "UpdateNetworkDto"
+          },
+          "responses": {
+            "200": "Network updated successfully"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/admin/networks/:networkId",
+          "summary": "Delete network (Admin)",
+          "description": "Admin deletion of network with all associated data",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Network deleted successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/networks/:networkId/members",
+          "summary": "Get network members (Admin)",
+          "description": "Admin view of network members with detailed information",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "queryParameters": {
+            "page": "number (optional)",
+            "limit": "number (optional)"
+          },
+          "responses": {
+            "200": "Network members retrieved successfully"
+          }
+        },
+        {
+          "method": "DELETE",
+          "path": "/admin/networks/:networkId/members/:memberId",
+          "summary": "Remove network member (Admin)",
+          "description": "Admin removal of network member",
+          "pathParameters": {
+            "networkId": "string - network ID",
+            "memberId": "string - member user ID"
+          },
+          "responses": {
+            "200": "Member removed successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/networks/:networkId/applications",
+          "summary": "Get network applications (Admin)",
+          "description": "Admin view of network applications",
+          "pathParameters": {
+            "networkId": "string - network ID"
+          },
+          "responses": {
+            "200": "Network applications retrieved successfully"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/admin/networks/:networkId/applications/:applicationId",
+          "summary": "Manage application (Admin)",
+          "description": "Admin management of network application",
+          "pathParameters": {
+            "networkId": "string - network ID",
+            "applicationId": "string - application ID"
+          },
+          "requestBody": {
+            "type": "RespondToApplicationDto"
+          },
+          "responses": {
+            "200": "Application managed successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/networks/analytics/overview",
+          "summary": "Get network analytics",
+          "description": "Comprehensive analytics about networks",
+          "queryParameters": {
+            "days": "number (optional, max: 365) - analysis period"
+          },
+          "responses": {
+            "200": "Network analytics retrieved successfully"
+          }
+        }
+      ]
+    },
     "admin_dashboard": {
       "prefix": "/admin/dashboard",
       "description": "Admin dashboard and analytics endpoints",
@@ -1353,7 +1937,7 @@
           "method": "GET",
           "path": "/admin/dashboard/stats",
           "summary": "Get dashboard statistics",
-          "description": "Retrieve comprehensive platform analytics including users, friendships, locations, notifications, and system metrics",
+          "description": "Retrieve comprehensive platform analytics including users, friendships, locations, pro users, networks, notifications, and system metrics",
           "authentication": true,
           "guards": ["JwtAuthGuard", "AdminGuard"],
           "adminOnly": true,
@@ -1365,6 +1949,8 @@
                 "userGrowth": "User registration trends",
                 "engagement": "User engagement metrics",
                 "locations": "Location usage statistics",
+                "proUsers": "Pro user statistics and subscription distribution",
+                "networks": "Network statistics and utilization metrics",
                 "system": "System health and cache status"
               }
             },
@@ -1376,7 +1962,7 @@
           "method": "GET",
           "path": "/admin/dashboard/activity",
           "summary": "Get recent activity",
-          "description": "Retrieve recent user registrations, friendships, and location updates across the platform",
+          "description": "Retrieve recent user registrations, friendships, location updates, pro user conversions, network creations, and network applications across the platform",
           "authentication": true,
           "guards": ["JwtAuthGuard", "AdminGuard"],
           "adminOnly": true,
@@ -1389,7 +1975,10 @@
               "content": {
                 "recentUsers": "Array of recently registered users",
                 "recentFriendships": "Array of recent friendship activities",
-                "recentLocations": "Array of recent location updates with decrypted coordinates"
+                "recentLocations": "Array of recent location updates with decrypted coordinates",
+                "recentProUsers": "Array of recent pro user conversions",
+                "recentNetworks": "Array of recently created networks",
+                "recentNetworkApplications": "Array of recent network applications"
               }
             },
             "403": "Admin access required",
@@ -1505,12 +2094,17 @@
     "User": {
       "fields": {
         "id": "string (UUID)",
-        "email": "string (unique)",
+        "email": "string (unique, nullable for admin users)",
         "username": "string (unique, 3-20 chars)",
         "password": "string (hashed, min 6 chars)",
         "profilePicture": "string (nullable, GCS URL)",
         "isActive": "boolean (default: true)",
         "userType": "enum (USER, ADMIN)",
+        "accountType": "enum (INDIVIDUAL, PRO) (default: INDIVIDUAL)",
+        "subscriptionTier": "enum (PRO_LITE, PRO_PLUS, PRO_PREMIUM) (nullable)",
+        "unfriendQuotaLimit": "number (default: 5)",
+        "networkJoinQuotaLimit": "number (default: 3)",
+        "networkCreateQuotaLimit": "number (default: 1)",
         "createdAt": "datetime",
         "updatedAt": "datetime"
       }
@@ -1577,6 +2171,80 @@
         "blockedId": "string (User FK)",
         "createdAt": "datetime"
       }
+    },
+    "ProProfile": {
+      "fields": {
+        "id": "string (UUID)",
+        "userId": "string (User FK, unique)",
+        "firstName": "string",
+        "lastName": "string",
+        "age": "number (nullable)",
+        "gender": "string (nullable)",
+        "whyUsingProVersion": "string",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
+    },
+    "Network": {
+      "fields": {
+        "id": "string (UUID)",
+        "name": "string",
+        "description": "string (nullable)",
+        "isPublic": "boolean (default: true)",
+        "maxMembers": "number (nullable)",
+        "ownerId": "string (User FK)",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
+    },
+    "NetworkMember": {
+      "fields": {
+        "id": "string (UUID)",
+        "networkId": "string (Network FK)",
+        "userId": "string (User FK)",
+        "role": "enum (MEMBER, ADMIN) (default: MEMBER)",
+        "joinedAt": "datetime"
+      }
+    },
+    "NetworkApplication": {
+      "fields": {
+        "id": "string (UUID)",
+        "networkId": "string (Network FK)",
+        "applicantId": "string (User FK)",
+        "status": "enum (PENDING, ACCEPTED, REJECTED) (default: PENDING)",
+        "message": "string (nullable)",
+        "reviewedBy": "string (User FK, nullable)",
+        "reviewedAt": "datetime (nullable)",
+        "createdAt": "datetime"
+      }
+    },
+    "NetworkLocation": {
+      "fields": {
+        "id": "string (UUID)",
+        "networkId": "string (Network FK)",
+        "name": "string",
+        "description": "string (nullable)",
+        "latitude": "string (encrypted)",
+        "longitude": "string (encrypted)",
+        "address": "string (nullable)",
+        "category": "string (nullable)",
+        "createdBy": "string (User FK)",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
+    },
+    "QuotaUsage": {
+      "fields": {
+        "id": "string (UUID)",
+        "userId": "string (User FK)",
+        "quotaType": "enum (NETWORK_JOIN, NETWORK_CREATE)",
+        "actionsUsed": "number (default: 0)",
+        "maxQuota": "number",
+        "month": "number",
+        "year": "number",
+        "createdAt": "datetime",
+        "updatedAt": "datetime"
+      }
     }
   },
   "securityFeatures": {
@@ -1612,7 +2280,7 @@
     }
   },
   "adminEndpoints": {
-    "description": "Admin-specific endpoints for platform monitoring and management",
+    "description": "Admin-specific endpoints for comprehensive platform monitoring and management",
     "authentication": "JWT required for all admin endpoints",
     "authorization": "Admin access required (users without email field - external admin service)",
     "guards": ["JwtAuthGuard", "AdminGuard"],
@@ -1630,6 +2298,16 @@
           "path": "/users/admin/all-profiles",
           "method": "GET",
           "description": "Get all user profiles with pagination"
+        },
+        {
+          "path": "/users/:id/deactivate",
+          "method": "POST",
+          "description": "Deactivate user account"
+        },
+        {
+          "path": "/users/:id/reactivate",
+          "method": "POST",
+          "description": "Reactivate user account"
         }
       ],
       "friends": [
@@ -1686,16 +2364,110 @@
           "description": "Get all location history across users"
         }
       ],
+      "proUsers": [
+        {
+          "path": "/admin/pro-users",
+          "method": "GET",
+          "description": "Get all pro users with filtering and pagination"
+        },
+        {
+          "path": "/admin/pro-users/:userId",
+          "method": "GET",
+          "description": "Get detailed pro user information"
+        },
+        {
+          "path": "/admin/pro-users/convert/:userId",
+          "method": "POST",
+          "description": "Admin conversion of user to pro"
+        },
+        {
+          "path": "/admin/pro-users/:userId/profile",
+          "method": "PUT",
+          "description": "Admin update of pro user profile"
+        },
+        {
+          "path": "/admin/pro-users/:userId/subscription",
+          "method": "PUT",
+          "description": "Admin force change of subscription tier"
+        },
+        {
+          "path": "/admin/pro-users/:userId/convert-to-individual",
+          "method": "DELETE",
+          "description": "Admin conversion of pro user to individual"
+        },
+        {
+          "path": "/admin/pro-users/analytics/overview",
+          "method": "GET",
+          "description": "Get comprehensive pro user analytics"
+        },
+        {
+          "path": "/admin/pro-users/:userId/quota-limits",
+          "method": "PUT",
+          "description": "Admin update of user quota limits"
+        },
+        {
+          "path": "/admin/pro-users/:userId/quota-status",
+          "method": "GET",
+          "description": "Admin view of user quota usage"
+        }
+      ],
+      "networks": [
+        {
+          "path": "/admin/networks",
+          "method": "GET",
+          "description": "Get all networks with filtering and pagination"
+        },
+        {
+          "path": "/admin/networks/:networkId",
+          "method": "GET",
+          "description": "Get detailed network information"
+        },
+        {
+          "path": "/admin/networks/:networkId",
+          "method": "PUT",
+          "description": "Admin update of network details"
+        },
+        {
+          "path": "/admin/networks/:networkId",
+          "method": "DELETE",
+          "description": "Admin deletion of network"
+        },
+        {
+          "path": "/admin/networks/:networkId/members",
+          "method": "GET",
+          "description": "Admin view of network members"
+        },
+        {
+          "path": "/admin/networks/:networkId/members/:memberId",
+          "method": "DELETE",
+          "description": "Admin removal of network member"
+        },
+        {
+          "path": "/admin/networks/:networkId/applications",
+          "method": "GET",
+          "description": "Admin view of network applications"
+        },
+        {
+          "path": "/admin/networks/:networkId/applications/:applicationId",
+          "method": "PUT",
+          "description": "Admin management of network application"
+        },
+        {
+          "path": "/admin/networks/analytics/overview",
+          "method": "GET",
+          "description": "Get comprehensive network analytics"
+        }
+      ],
       "dashboard": [
         {
           "path": "/admin/dashboard/stats",
           "method": "GET",
-          "description": "Get comprehensive dashboard statistics"
+          "description": "Get comprehensive dashboard statistics including pro users and networks"
         },
         {
           "path": "/admin/dashboard/activity",
           "method": "GET",
-          "description": "Get recent platform activity"
+          "description": "Get recent platform activity including pro user and network activities"
         },
         {
           "path": "/admin/dashboard/analytics/users",
@@ -1716,14 +2488,24 @@
       "Friendship relationship oversight",
       "System health monitoring",
       "Pagination support for large datasets",
-      "Real-time platform analytics"
+      "Real-time platform analytics",
+      "Pro user management and analytics",
+      "Network administration and monitoring",
+      "Subscription tier management",
+      "Quota limit enforcement",
+      "Revenue and growth tracking",
+      "Force operations with admin override"
     ],
     "useCases": [
       "External admin dashboard integration",
       "Platform monitoring systems",
       "Analytics and reporting tools",
       "Compliance and audit systems",
-      "Customer support tools"
+      "Customer support tools",
+      "Pro user subscription management",
+      "Network moderation and oversight",
+      "Revenue optimization",
+      "Quota management and enforcement"
     ]
   },
   "cachingSystem": {

@@ -51,4 +51,105 @@ model Admin {
   // Self-referential relation for traceability
   creator   Admin?   @relation("AdminCreator", fields: [addedBy], references: [id], onDelete: SetNull)
   createdAdmins Admin[] @relation("AdminCreator")
+  
+  // Audit trail relation
+  auditLogs AdminAuditLog[]
+}
+
+// Admin audit log model for tracking all admin actions
+// IMMUTABLE - Once created, these records should NEVER be deleted or modified
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  action      AuditAction
+  resource    String   // e.g., "user", "admin", "dashboard"
+  resourceId  String?  // ID of the affected resource (if applicable)
+  method      String   // HTTP method (GET, POST, PUT, DELETE, PATCH)
+  endpoint    String   // API endpoint called
+  details     Json?    // Additional details about the action (request body, query params, etc.)
+  metadata    Json?    // Additional metadata (IP address, user agent, etc.)
+  status      AuditStatus @default(SUCCESS)
+  errorMessage String? // Error message if action failed
+  timestamp   DateTime @default(now())
+  isArchived  Boolean  @default(false) // For soft archiving instead of deletion
+  archivedAt  DateTime? // When the record was archived
+  archivedBy  String?   // Admin who archived the record
+  
+  // Relations - Use Restrict instead of Cascade to prevent accidental deletions
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: Restrict)
+  
+  // Indexes for efficient querying
+  @@index([adminId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@index([status])
+  @@index([isArchived])
+  @@index([archivedAt])
+}
+
+// Enum for audit actions
+enum AuditAction {
+  // Authentication actions
+  LOGIN
+  LOGOUT
+  REFRESH_TOKEN
+  
+  // Admin management actions
+  CREATE_ADMIN
+  UPDATE_ADMIN
+  DELETE_ADMIN
+  ACTIVATE_ADMIN
+  DEACTIVATE_ADMIN
+  VIEW_ADMIN
+  LIST_ADMINS
+  
+  // User management actions (for main app users)
+  VIEW_USER
+  LIST_USERS
+  UPDATE_USER
+  DELETE_USER
+  ACTIVATE_USER
+  DEACTIVATE_USER
+  SEARCH_USERS
+  
+  // Friend management actions
+  VIEW_FRIENDSHIPS
+  LIST_FRIENDSHIPS
+  DELETE_FRIENDSHIP
+  
+  // Location management actions
+  VIEW_LOCATIONS
+  LIST_LOCATIONS
+  DELETE_LOCATION
+  VIEW_LOCATION_HISTORY
+  
+  // Dashboard and analytics actions
+  VIEW_DASHBOARD
+  VIEW_ANALYTICS
+  EXPORT_DATA
+  
+  // System actions
+  HEALTH_CHECK
+  VIEW_LOGS
+  SYSTEM_CONFIG
+  ARCHIVE_LOGS
+  VIEW_ARCHIVED_LOGS
+  ATTEMPT_DELETE_LOGS // For tracking forbidden deletion attempts
+  
+  // Generic actions
+  READ
+  CREATE
+  UPDATE
+  DELETE
+  BULK_ACTION
+}
+
+// Enum for audit status
+enum AuditStatus {
+  SUCCESS
+  FAILED
+  UNAUTHORIZED
+  FORBIDDEN
+  ERROR
 }
